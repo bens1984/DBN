@@ -1,0 +1,237 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A0AA84AB13DDC25300C5D817 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84AA13DDC25300C5D817 /* main.cpp */; };
+		A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B213DDC27B00C5D817 /* Particle.cpp */; };
+		A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */; };
+		A0CA9B7B13F52F07005F3B5A /* liboscpack.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A0CA9B7A13F52F07005F3B5A /* liboscpack.a */; };
+		A0CA9B7D13F52F8E005F3B5A /* OSCReceive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A0AA84A413DDC25300C5D817 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A0AA84A613DDC25300C5D817 /* LabanDBN */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LabanDBN; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0AA84AA13DDC25300C5D817 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = LabanDBN.1; sourceTree = "<group>"; };
+		A0AA84B213DDC27B00C5D817 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
+		A0AA84B313DDC27B00C5D817 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particle.h; sourceTree = "<group>"; };
+		A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleFilter.cpp; sourceTree = "<group>"; };
+		A0AA84B613DDCFCB00C5D817 /* ParticleFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleFilter.h; sourceTree = "<group>"; };
+		A0CA9B7813F52EE6005F3B5A /* OSCReceive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSCReceive.h; sourceTree = "<group>"; };
+		A0CA9B7A13F52F07005F3B5A /* liboscpack.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liboscpack.a; path = code/oscpack/Mac/build/Release/liboscpack.a; sourceTree = DEVELOPER_DIR; };
+		A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCReceive.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A0AA84A313DDC25300C5D817 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0CA9B7B13F52F07005F3B5A /* liboscpack.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A0AA849B13DDC25300C5D817 = {
+			isa = PBXGroup;
+			children = (
+				A0AA84A913DDC25300C5D817 /* LabanDBN */,
+				A0AA84A713DDC25300C5D817 /* Products */,
+				A0CA9B7A13F52F07005F3B5A /* liboscpack.a */,
+			);
+			sourceTree = "<group>";
+		};
+		A0AA84A713DDC25300C5D817 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0AA84A613DDC25300C5D817 /* LabanDBN */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A0AA84A913DDC25300C5D817 /* LabanDBN */ = {
+			isa = PBXGroup;
+			children = (
+				A0CA9B7813F52EE6005F3B5A /* OSCReceive.h */,
+				A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */,
+				A0AA84AA13DDC25300C5D817 /* main.cpp */,
+				A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */,
+				A0AA84B213DDC27B00C5D817 /* Particle.cpp */,
+				A0AA84B313DDC27B00C5D817 /* Particle.h */,
+				A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */,
+				A0AA84B613DDCFCB00C5D817 /* ParticleFilter.h */,
+			);
+			path = LabanDBN;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A0AA84A513DDC25300C5D817 /* LabanDBN */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A0AA84AF13DDC25300C5D817 /* Build configuration list for PBXNativeTarget "LabanDBN" */;
+			buildPhases = (
+				A0AA84A213DDC25300C5D817 /* Sources */,
+				A0AA84A313DDC25300C5D817 /* Frameworks */,
+				A0AA84A413DDC25300C5D817 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LabanDBN;
+			productName = LabanDBN;
+			productReference = A0AA84A613DDC25300C5D817 /* LabanDBN */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A0AA849D13DDC25300C5D817 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = A0AA84A013DDC25300C5D817 /* Build configuration list for PBXProject "LabanDBN" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = A0AA849B13DDC25300C5D817;
+			productRefGroup = A0AA84A713DDC25300C5D817 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A0AA84A513DDC25300C5D817 /* LabanDBN */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A0AA84A213DDC25300C5D817 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0AA84AB13DDC25300C5D817 /* main.cpp in Sources */,
+				A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */,
+				A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */,
+				A0CA9B7D13F52F8E005F3B5A /* OSCReceive.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A0AA84AD13DDC25300C5D817 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A0AA84AE13DDC25300C5D817 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A0AA84B013DDC25300C5D817 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(oscpack)",
+					"$(CWTMatrix)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_DIR)/code/oscpack/Mac/build/Release\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A0AA84B113DDC25300C5D817 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(oscpack)",
+					"$(CWTMatrix)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_DIR)/code/oscpack/Mac/build/Release\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A0AA84A013DDC25300C5D817 /* Build configuration list for PBXProject "LabanDBN" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0AA84AD13DDC25300C5D817 /* Debug */,
+				A0AA84AE13DDC25300C5D817 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A0AA84AF13DDC25300C5D817 /* Build configuration list for PBXNativeTarget "LabanDBN" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0AA84B013DDC25300C5D817 /* Debug */,
+				A0AA84B113DDC25300C5D817 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A0AA849D13DDC25300C5D817 /* Project object */;
+}
