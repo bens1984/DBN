@@ -47,12 +47,12 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
 //    float alpha = 0.5;
     for (int i = 0; i < 5; i++)         // set continuous variables to 0 for a uniform start.
     {
-        state.hiddenState[i][0] = 0;  // X
+        state.hiddenState[i][0] = 1;  // X
         state.hiddenState[i][1] = 0;  // V
         state.hiddenState[i][2] = 0;    // V0
 //        state.hiddenState[i][3] = state.hiddenState[i][2];                // v0
 //        for (int j = 0; j < 3; j++)
-        state.hiddenStateVariance[i].fill(0.5); //[j] = 0;
+        state.hiddenStateVariance[i].fill(1); //[j] = 0;
         state.y[i].fill(0); // initial observations
 //        if (state.R[i] != 0 && state.M == 0)   // v0
 //            state.v0[i] = exp(GetGaussianSample(log(state.v0[i]), v0Variance));
@@ -98,9 +98,9 @@ void Particle::SampleR()
         r[i] = ranf();
     switch (state.L) {
         case rising:
-            state.R[0] = (r[0] < 0.15 ? -1 : (r[0] < 0.85 ? 1 : 0));
-            state.R[1] = ((r[1] < 0.15 ? -1 : (r[1] < 0.85 ? 1 : 0)));
-            state.R[2] = ((r[2] < 0.15 ? -1 : (r[2] < 0.85 ? 1 : 0)));
+            state.R[0] = 1; //(r[0] < 0.15 ? -1 : (r[0] < 0.85 ? 1 : 0));
+            state.R[1] = 1; //((r[1] < 0.15 ? -1 : (r[1] < 0.85 ? 1 : 0)));
+            state.R[2] = 1; //((r[2] < 0.15 ? -1 : (r[2] < 0.85 ? 1 : 0)));
             state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
             state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
             break;
@@ -277,8 +277,8 @@ void Particle::KalmanForwardRecursion(vector<float> *observations)
     
     for (int i = 0; i < 5; i++)
     {
-        state.updateFunction[1][1] = 1; //0.1;
-        state.updateFunction[1][2] = 0; //(state.R[i] == 1 ? 0.9 : (state.R[i] == -1 ? -0.9 : 0)); // update the updateFunction according to the state functions
+//        state.updateFunction[1][1] = 1; //0.1;
+//        state.updateFunction[1][2] = 0; //(state.R[i] == 1 ? 0.9 : (state.R[i] == -1 ? -0.9 : 0)); // update the updateFunction according to the state functions
 //        if (state.M == 0 && state.R[i] != 0)
 //            state.updateFunction[2][2] = 1;
 //        else
@@ -287,23 +287,25 @@ void Particle::KalmanForwardRecursion(vector<float> *observations)
 //        }
         
         xTemp = (CWMatrix)state.hiddenState[i];
-        xTemp = state.updateFunction * xTemp + F * control;
+        xTemp = state.updateFunction * xTemp; // + F * control;
         if (i == 0)
             PrintMatrix("x=Ax+Fu", xTemp);
-        vTemp = state.hiddenStateVariance[i];
+        vTemp = (CWMatrix)state.hiddenStateVariance[i];
         vTemp = state.updateFunction * vTemp * transpose(state.updateFunction) + Q; //*transpose(Q);     // in all the examples both X and V use the same A (update function). Do we have to?
         if (i == 0)
             PrintMatrix("v=AvA'+Q", vTemp);
         
         S = C * vTemp * cTransp + R;//*transpose(R);       // de Freitas has this as R*R', but is that assuming a k x 1 matrix? or a square matrix?
-//        if (i == 0)
-//            PrintMatrix("S=CvC'+R", S);
+        if (i == 0)
+            PrintMatrix("S=CvC'+R", S);
         K = vTemp * cTransp * inv(S);
         if (i == 0)
             PrintMatrix("y", (CWMatrix)state.y[i]);
-        yTemp = (CWMatrix)state.y[i] - (C * xTemp + G * control);
+        yTemp = (CWMatrix)state.y[i] - (C * xTemp); // + G * control);
         if (i == 0)
             PrintMatrix("y-Cx+Gu", yTemp);
+        if (i == 0)
+            PrintMatrix("K=vC'S^-1", K);
         xTemp = xTemp + K * yTemp;
         if (i == 0)
             PrintMatrix("x=x+Ky", xTemp);

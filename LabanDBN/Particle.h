@@ -42,10 +42,10 @@ struct dbnState {
             y[i].dimension(3);
         }
         updateFunction.dimension(3);
-        updateFunction.makeUnity();
-//        updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
-//        updateFunction[1][0] = 0; updateFunction[1][1] = 0.5; updateFunction[1][2] = 0.5;  // update v
-//        updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
+//        updateFunction.makeUnity();
+        updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
+        updateFunction[1][0] = 0; updateFunction[1][1] = 0.8; updateFunction[1][2] = 0.2;  // update v
+        updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
     }
 };
 
