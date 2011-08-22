@@ -12,7 +12,7 @@
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(1);
+    ParticleFilter myFilter(10);
     OSCReceive myOSC;
     
     myOSC.StartReception();
@@ -24,6 +24,7 @@ int main (int argc, const char * argv[])
         OSCData data = myOSC.ReadAPacket();
         if (data.header != oscNothing)
         {
+            myFilter.Predict();
             myFilter.CalculateWeights(&(data.data));
             Particle* p = myFilter.GetDominantParticle();
             if (p != NULL)

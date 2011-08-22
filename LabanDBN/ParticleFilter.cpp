@@ -39,14 +39,24 @@ void ParticleFilter::CalculateWeights(vector<float>* y)
 }
 void ParticleFilter::Resample()
 {
-//    float quantile[myParticles.size()];
-//    float weight = 0;
-//    for (int i = 0; i < myParticles.size(); i++)
-//        quantile[i] = weight = weight + myParticles.at(i)->GetNormalizedWeight();
-//    
-//    std::vector<Particle*> newParticles;
-//    for (int i = 0; i < myParticles.size(); i++)
-//        
+    float cumlativeWeight[myParticles.size()];
+    float weight = 0;
+    for (int i = 0; i < myParticles.size(); i++)
+        cumlativeWeight[i] = weight = weight + myParticles.at(i)->GetNormalizedWeight();
+    
+    std::vector<Particle*> newParticles;
+    for (int i = 0; i < myParticles.size(); i++)
+    {
+        double u = ranf();  // get a uniform sample
+        for (int j = 0; j < myParticles.size(); j++)
+            if (u < cumlativeWeight[j])
+            {
+                newParticles.push_back(myParticles.at(j)->Copy());
+                break;  // j
+            }
+    }
+    myParticles.erase(myParticles.begin(), myParticles.end());
+    myParticles.insert(myParticles.begin(), newParticles.begin(), newParticles.end());
 }
 Particle* ParticleFilter::GetDominantParticle()
 {
@@ -68,5 +78,5 @@ Particle* ParticleFilter::GetDominantParticle()
 void ParticleFilter::ExactUpdate(vector<float>* y)
 {
     for (int i = 0; i < myParticles.size(); i++)
-        myParticles.at(i)->KalmanForwardRecursion(y);
+        myParticles.at(i)->KalmanForwardRecursion();
 }

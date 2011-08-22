@@ -8,6 +8,8 @@
 #define ranf() \
 ((double)random()/(1.0+(double)RAND_MAX)) // Uniform from interval [0,1) */
 
+#define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
+
 #include <vector>
 #include <math.h>
 #include "cwmtx.h" // <- part of the CWTMatrix library
@@ -29,7 +31,7 @@ struct dbnState {
     CWVector hiddenStateVariance[5];
 //    double v0[5];
     CWVector y[5];
-    double predX[5], predV[5], predV0[5];
+//    double predX[5], predV[5], predV0[5];
     
     CWSquareMatrix updateFunction;
     
@@ -44,7 +46,7 @@ struct dbnState {
         updateFunction.dimension(3);
 //        updateFunction.makeUnity();
         updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
-        updateFunction[1][0] = 0; updateFunction[1][1] = 0.8; updateFunction[1][2] = 0.2;  // update v
+        updateFunction[1][0] = 0; updateFunction[1][1] = 0.5; updateFunction[1][2] = 0.5;  // update v
         updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
     }
 };
@@ -80,14 +82,16 @@ public:
     ~Particle();
     
     void Initialize();  // randomly generate a new particle
-    void Resample(dbnState* seed);   // resample this particle around the seed particle
+    void Resample(Particle* seed);   // resample this particle around the seed particle
     
     dbnState* GetState();
     float GetWeight();
     float GetNormalizedWeight();
     
+    Particle* Copy();
+    
     void Predict();                         // predict next time step
     float CalculateWeight(vector<float> *y);                    // calculate the importance of this particle
     float NormalizeWeight(float sumWeight);     // normalize weight, set weight_normalized and return it
-    void KalmanForwardRecursion(vector<float> *y);      // exact step to update continuous state variables
+    void KalmanForwardRecursion();      // exact step to update continuous state variables
 };
