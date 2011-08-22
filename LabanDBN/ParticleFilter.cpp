@@ -60,7 +60,10 @@ Particle* ParticleFilter::GetDominantParticle()
             max = myParticles.at(i)->GetNormalizedWeight();
         }
     }
-    return myParticles.at(maxIndex);
+    if (maxIndex > -1)
+        return myParticles.at(maxIndex);
+    else
+        return NULL;
 }
 void ParticleFilter::ExactUpdate(vector<float>* y)
 {

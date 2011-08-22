@@ -27,7 +27,7 @@ struct dbnState {
     int R[5];
     CWVector hiddenState[5];
     CWVector hiddenStateVariance[5];
-//    double v0[5];
+    double v0[5];
     CWVector y[5];
     double predX[5], predV[5], predV0[5];
     
@@ -37,15 +37,15 @@ struct dbnState {
     {
         for (int i = 0; i < 5; i++)
         {
-            hiddenState[i].dimension(3);
-            hiddenStateVariance[i].dimension(3);
-            y[i].dimension(3);
+            hiddenState[i].dimension(4);
+            hiddenStateVariance[i].dimension(4);
+            y[i].dimension(4);
         }
-        updateFunction.dimension(3);
-        updateFunction.makeUnity();
-//        updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
-//        updateFunction[1][0] = 0; updateFunction[1][1] = 0.5; updateFunction[1][2] = 0.5;  // update v
-//        updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
+        updateFunction.dimension(4);
+        updateFunction[0][0] = 1; updateFunction[0][1] = 0; updateFunction[0][2] = 1; updateFunction[0][3] = 0;   // to update x based on prev x and v
+        updateFunction[1][0] = 1; updateFunction[1][1] = 0; updateFunction[1][2] = 0; updateFunction[1][3] = 0;   // update prev x
+        updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 0.5; updateFunction[2][3] = 0.5;  // update v
+        updateFunction[3][0] = 0; updateFunction[3][1] = 0; updateFunction[3][2] = 0; updateFunction[3][3] = 1;     // retain v0
     }
 };
 

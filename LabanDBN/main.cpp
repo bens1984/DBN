@@ -25,20 +25,24 @@ int main (int argc, const char * argv[])
         if (data.header != oscNothing)
         {
             myFilter.CalculateWeights(&(data.data));
-//            Particle* p = myFilter.GetDominantParticle();
-//            dbnState* dbn = p->GetState();
-//            cout << p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
-//            for (int i = 0; i < 5; i++)
-//                cout << dbn->R[i] << ",";
-//            cout << "] hiddenState:";
-//            for (int i = 0; i < 5; i++)
-//            {
-//                cout << "[";
-//                for (int j = 0; j < 4; j++)
-//                    cout << dbn->hiddenState[i][j] << ",";
-//                cout << "] ";
-//            }
-//            cout << endl;
+            Particle* p = myFilter.GetDominantParticle();
+            if (p != NULL)
+            {
+                dbnState* dbn = p->GetState();
+                cout << "#" <<  p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
+                for (int i = 0; i < 5; i++)
+                    cout << dbn->R[i] << ",";
+                cout << "] hiddenState:";
+                for (int i = 0; i < 5; i++)
+                {
+                    cout << "[";
+                    for (int j = 0; j < dbn->hiddenState[i].getRows(); j++)
+                        cout << dbn->hiddenState[i][j] << ",";
+                    cout << "] ";
+                }
+            } else
+                cout << "no maximal particle found.";
+            cout << endl;
             myFilter.Resample();
             myFilter.ExactUpdate(&(data.data));
         }
