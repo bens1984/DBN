@@ -12,7 +12,7 @@
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(1);
+    ParticleFilter myFilter(1000);
     OSCReceive myOSC;
     
     myOSC.StartReception();
@@ -34,13 +34,16 @@ int main (int argc, const char * argv[])
                 for (int i = 0; i < 5; i++)
                     cout << dbn->R[i] << ",";
                 cout << "] hiddenState:";
-                for (int i = 0; i < 5; i++)
-                {
+//                for (int i = 0; i < 5; i++)
+//                {
                     cout << "[";
-                    for (int j = 0; j < dbn->hiddenState[i].getRows(); j++)
-                        cout << dbn->hiddenState[i][j] << ",";
-                    cout << "] ";
-                }
+                    for (int j = 0; j < dbn->hiddenState[0].getRows(); j++)
+                        cout << dbn->hiddenState[0][j] << ",";
+                cout << "] obs:[";
+                for (int j = 0; j < dbn->y[0].getRows(); j++)
+                    cout << dbn->y[0][j] << ",";
+                cout << "] ";
+//                }
             } else
                 cout << "no maximal particle found.";
             cout << endl;

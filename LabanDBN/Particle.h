@@ -10,6 +10,8 @@
 
 #define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
 
+#define V_V0_INFLUENCE 0.8          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
+
 #include <vector>
 #include <math.h>
 #include "cwmtx.h" // <- part of the CWTMatrix library
@@ -27,11 +29,8 @@ struct dbnState {
     int M;
     ShapeQualities L;
     int R[5];
-    CWVector hiddenState[5];
-    CWVector hiddenStateVariance[5];
-//    double v0[5];
-    CWVector y[5];
-//    double predX[5], predV[5], predV0[5];
+    CWVector hiddenState[5], y[5];
+    CWSquareMatrix hiddenStateVariance[5];
     
     CWSquareMatrix updateFunction;
     
@@ -40,13 +39,15 @@ struct dbnState {
         for (int i = 0; i < 5; i++)
         {
             hiddenState[i].dimension(3);
+            hiddenState[i].fill(0);
             hiddenStateVariance[i].dimension(3);
             y[i].dimension(3);
+            y[i].fill(0);
         }
         updateFunction.dimension(3);
 //        updateFunction.makeUnity();
         updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
-        updateFunction[1][0] = 0; updateFunction[1][1] = 0.5; updateFunction[1][2] = 0.5;  // update v
+        updateFunction[1][0] = 0; updateFunction[1][1] = 1.0 - V_V0_INFLUENCE; updateFunction[1][2] = V_V0_INFLUENCE;  // update v
         updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
     }
 };
