@@ -20,7 +20,7 @@
  
  */
 
-//#define PRINT_DEBUG       // <- define to print matrix updates during Kalman Filter. Set ParticleFilter size to 1 or be very afraid!
+#define PRINT_DEBUG       // <- define to print matrix updates during Kalman Filter. Set ParticleFilter size to 1 or be very afraid!
 
 #include "Particle.h"
 #include <math.h>
@@ -82,18 +82,18 @@ void Particle::Resample(Particle* seed)   // creates a new particle that is dist
         for (int i = 0; i < 5; i++)
             state.hiddenStateVariance[i].fill(0.1);
     }
-    float alpha = 0.5;  // filtering constant for V update
-    for (int i = 0; i < 5; i++)
-    {
-        if (state.R[i] != 0 && state.M == 0)   // v0
-            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2]));
-        else
-            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
-        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
-        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, (1-alpha)/(1+alpha)); // V
-//        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
-        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
-    }
+//    float alpha = 0.5;  // filtering constant for V update
+//    for (int i = 0; i < 5; i++)
+//    {
+//        if (state.R[i] != 0 && state.M == 0)   // v0
+//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2]));
+//        else
+//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
+//        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
+//        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, (1-alpha)/(1+alpha)); // V
+////        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
+//        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
+//    }
 }
 void Particle::SampleR()
 {
@@ -173,10 +173,16 @@ Particle* Particle::Copy()
     dbnState* ds = p->GetState();
     memcpy(ds, &state, sizeof(dbnState));
     
+//    for (int i = 0; i < 5; i++)
+//        ds->hiddenStateVariance[i].fill(0.1);
+    
     return p;
 }
 void Particle::Predict()
 {
+//    CWSquareMatrix Q;
+//    Q.dimension(3);
+//    Q.makeUnity();  // * 0.01?
     
     // transition for discrete states:
     state.M = (ranf() < GESTURE_FREQUENCY);
@@ -189,59 +195,62 @@ void Particle::Predict()
     {
         state.L = (ShapeQualities)(rand() % 2);
         SampleR();  // get R again!
+        for (int i = 0; i < 5; i++)
+        {
+            state.hiddenStateVariance[i].fill(0.1);
+            state.hiddenState[i][2] = 0;
+        }
     }
-    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
-    for (int i = 0; i < 5; i++)
-    {
-        if (state.R[i] != 0 && state.M == 0)   // v0
-            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2]));
-        else
-            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
-        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
-        float alpha = 0.5;
-        float s = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
-        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, s * state.hiddenStateVariance[i][1]);
-        
-        state.hiddenState[i][0] = state.hiddenState[i][0] + state.hiddenState[i][1]; // X_t-1 + V_t-1
-//        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i];     // <- should this be done here or in Kalman step, below?
-    }
+//    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
+//    for (int i = 0; i < 5; i++)
+//    {
+//        state.updateFunction[1][2] = state.R[i] * 0.5;
+//        state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i];
+//        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q;
+//        
+//        if (state.R[i] != 0 && state.M == 0)   // v0
+//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1.0)); //state.hiddenStateVariance[i][2]));
+//        else
+//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
+////        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
+////        float alpha = 0.9;
+////        float s = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
+////        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, s * 1.0); //state.hiddenStateVariance[i][1]);
+////        
+////        state.hiddenState[i][0] = state.hiddenState[i][0] + state.hiddenState[i][1]; // X_t-1 + V_t-1
+////        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i];     // <- should this be done here or in Kalman step, below?
+//    }
 }
-float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weight
+float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weight  ---  NEED TO REDO THIS. VARIANCE gets smaller with better accuracy...
 {
-    cout << "----------";
-    double xWeight; //vWeight
+    double temp;
+//    cout << "----------";
+//    double xWeight; //vWeight
     // weight measure:
     // p(y | y_t-1, discrete states)p(state | state_t-1, y) / q(state; state_t-1, y)
     
     // compare y to updatedX as importance function
     //   this is euclidean distance:
-    float alpha = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
+//    float alpha = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
     weight = 0;
     for (int i = 0; i < 5; i++)
     {
-        double xVariance = state.hiddenStateVariance[i][0];
-        double vVariance = alpha * state.hiddenStateVariance[i][1];
-        if (i == 0)
-            cout << "variance:" << xVariance << ", " << vVariance << endl;
         state.y[i][1] = y->at(i) - state.y[i][0];  // calculate dif
         state.y[i][0] = y->at(i);           // store current observation
         state.y[i][2] = abs(state.y[i][1]);             // abs of dif
-        // based on previous observation is this new observation accurate?
-        // based on previous state and observations did we predict accurately?
-        
-        // this is the weight based on V:
-//        double observedV = y->at(i) - state.hiddenState[i][0];
-//        if (vVariance != 0)
-//            vWeight = abs(state.predV[i] - observedV) / vVariance;
-//        else
-//            vWeight = 0;
-        // this is the weight based on X:
-        if (xVariance != 0)
-            xWeight = abs(y->at(i) - state.hiddenState[i][0]) / xVariance;
-        else
-            xWeight = 0;
-        weight += xWeight;      // + vWeight;
+        for (int j = 0; j < 3; j++)
+        {
+            // this is the weight based on X:
+//            if (state.hiddenStateVariance[i][j] != 0)
+                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2) * 0.5; // / state.hiddenStateVariance[i][j];
+//            else
+//                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2); // / 0.001;    //
+            temp = temp < 0 ? 0 : temp;
+            weight += temp;
+//            weight += xWeight;      // + vWeight;
+        }
     }
+    weight *= 0.071428571; // variance = E(deviation^2)/N-1. N = 15
 //    if (weight != 0)
 //        weight = 1.0 / weight;
     
@@ -254,11 +263,13 @@ float Particle::NormalizeWeight(float sumWeight)     // normalize weight, set we
     else
         weight_normalized = 0;
     
-    cout << "weight:" << weight_normalized << endl;
+//    cout << "weight:" << weight_normalized << endl;
     return weight_normalized;
 }
 void Particle::KalmanForwardRecursion()
 {
+    Predict();
+    
     // k - size of X (hidden state)
     // p - size of Y (observations)
 	// Y - a vector of observation, (1 by p)
@@ -278,7 +289,9 @@ void Particle::KalmanForwardRecursion()
     
     control.fill(0);    // no control at the moment.
     R.makeUnity();
+//    R *= 0.01;
     Q.makeUnity();
+//    Q *= 0.01;
     C.makeUnity();
     cTransp.storeTranspose(C);
     F.makeUnity();
@@ -286,8 +299,10 @@ void Particle::KalmanForwardRecursion()
     
     for (int i = 0; i < 5; i++)
     {
+        state.updateFunction[1][2] = state.R[i] * 0.5;
+
 //        state.updateFunction[1][1] = 1; //0.1;
-        state.updateFunction[1][2] = (state.R[i] == 1 ? 0.5 : (state.R[i] == -1 ? -0.5 : 0)); // update the updateFunction according to the state functions
+//        state.updateFunction[1][2] = (state.R[i] == 1 ? 0.5 : (state.R[i] == -1 ? -0.5 : 0)); // update the updateFunction according to the state functions
 //        if (state.M == 0 && state.R[i] != 0)
 //            state.updateFunction[2][2] = 1;
 //        else
@@ -296,7 +311,7 @@ void Particle::KalmanForwardRecursion()
 //        }
         
         xTemp = (CWMatrix)state.hiddenState[i];
-//        xTemp = state.updateFunction * xTemp; // + F * control;
+        xTemp = state.updateFunction * xTemp; // + F * control;
         if (i == 0)
             PrintMatrix("x=Ax+Fu", xTemp);
         vTemp = (CWMatrix)state.hiddenStateVariance[i];
@@ -306,7 +321,10 @@ void Particle::KalmanForwardRecursion()
         
         S = C * vTemp * cTransp + R;//*transpose(R);       // de Freitas has this as R*R', but is that assuming a k x 1 matrix? or a square matrix?
         if (i == 0)
+        {
             PrintMatrix("S=CvC'+R", S);
+            PrintMatrix("S-inverse", inv(S));
+        }
         K = vTemp * cTransp * inv(S);
         if (i == 0)
             PrintMatrix("y", (CWMatrix)state.y[i]);

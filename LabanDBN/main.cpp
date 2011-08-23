@@ -12,7 +12,7 @@
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(10);
+    ParticleFilter myFilter(1);
     OSCReceive myOSC;
     
     myOSC.StartReception();
@@ -24,13 +24,13 @@ int main (int argc, const char * argv[])
         OSCData data = myOSC.ReadAPacket();
         if (data.header != oscNothing)
         {
-            myFilter.Predict();
+//            myFilter.Predict();
             myFilter.CalculateWeights(&(data.data));
             Particle* p = myFilter.GetDominantParticle();
             if (p != NULL)
             {
                 dbnState* dbn = p->GetState();
-                cout << "#" <<  p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
+                cout <<  p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
                 for (int i = 0; i < 5; i++)
                     cout << dbn->R[i] << ",";
                 cout << "] hiddenState:";
