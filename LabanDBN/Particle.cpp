@@ -38,7 +38,7 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
 {
     // how is state defined? what is the initial distribution?
     state.M = 0; // M = 0
-    state.L = (ShapeQualities)(rand() % 2);    // L = {0...6}
+    state.L = (ShapeQualities)(rand() % 7);    // L = {0...6}
     // sample R given L
     SampleR();
     
@@ -60,8 +60,7 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
 //        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.v0[i] : state.v0[i]));
 //        state.hiddenState[i][2] = GetGaussianSample(alpha * state.hiddenState[i][2] + (1.0 - alpha) * delta, (1-alpha)/(1+alpha)); // V
     }
-    // calculate the weight right away
-    
+    weight = weight_normalized = 1;
 }
 void Particle::Resample(Particle* seed)   // creates a new particle that is distributed around this one.
 {                                       //TODO: replace with a proven algorithm
@@ -104,9 +103,9 @@ void Particle::SampleR()
         r[i] = ranf();
     switch (state.L) {
         case rising:
-            state.R[0] = 1; //(r[0] < 0.15 ? -1 : (r[0] < 0.85 ? 1 : 0));
-            state.R[1] = 1; //((r[1] < 0.15 ? -1 : (r[1] < 0.85 ? 1 : 0)));
-            state.R[2] = 1; //((r[2] < 0.15 ? -1 : (r[2] < 0.85 ? 1 : 0)));
+            state.R[0] = (r[0] < 0.15 ? -1 : (r[0] < 0.9 ? 1 : 0));
+            state.R[1] = ((r[1] < 0.15 ? -1 : (r[1] < 0.9 ? 1 : 0)));
+            state.R[2] = ((r[2] < 0.15 ? -1 : (r[2] < 0.9 ? 1 : 0)));
             state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
             state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
             break;
@@ -114,43 +113,43 @@ void Particle::SampleR()
             state.R[0] = (r[0] < 0.75 ? -1 : (r[0] < 0.9 ? 1 : 0));
             state.R[1] = (r[1] < 0.75 ? -1 : (r[1] < 0.9 ? 1 : 0));
             state.R[2] = (r[2] < 0.75 ? -1 : (r[2] < 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] >= 0.9 ? 1 : 0)));
+            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] >= 0.9 ? 1 : 0)));
             break;
         case advancing:
             state.R[0] = (r[0] < 0.1 ? -1 : (r[0] >= 0.9 ? 1 : 0));
-            state.R[1] = (r[0] < 0.1 ? -1 : (r[1] >= 0.9 ? 1 : 0));
-            state.R[2] = (r[0] < 0.1 ? -1 : (r[2] >= 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[1] = (r[1] < 0.1 ? -1 : (r[1] >= 0.9 ? 1 : 0));
+            state.R[2] = (r[2] < 0.1 ? -1 : (r[2] >= 0.9 ? 1 : 0));
+            state.R[3] = ((r[3] < 0.01 ? -1 : (r[3] >= 0.02 ? 1 : 0)));
+            state.R[4] = ((r[4] < 0.1 ? -1 : (r[4] >= 0.9 ? 1 : 0)));
             break;
         case retreating:
-            state.R[0] = (r[0] < 0.75 ? -1 : (r[0] < 0.9 ? 1 : 0));
-            state.R[1] = (r[1] < 0.75 ? -1 : (r[1] < 0.9 ? 1 : 0));
-            state.R[2] = (r[2] < 0.75 ? -1 : (r[2] < 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[0] = (r[0] < 0.1 ? -1 : (r[0] >= 0.9 ? 1 : 0));
+            state.R[1] = (r[1] < 0.1 ? -1 : (r[1] >= 0.9 ? 1 : 0));
+            state.R[2] = (r[2] < 0.1 ? -1 : (r[2] >= 0.9 ? 1 : 0));
+            state.R[3] = ((r[3] < 0.98 ? -1 : (r[3] >= 0.99 ? 1 : 0)));
+            state.R[4] = ((r[4] < 0.1 ? -1 : (r[4] >= 0.9 ? 1 : 0)));
             break;
         case spreading:
-            state.R[0] = (r[0] < 0.75 ? -1 : (r[0] < 0.9 ? 1 : 0));
-            state.R[1] = (r[1] < 0.75 ? -1 : (r[1] < 0.9 ? 1 : 0));
-            state.R[2] = (r[2] < 0.75 ? -1 : (r[2] < 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[0] = (r[0] < 0.1 ? -1 : (r[0] >= 0.9 ? 1 : 0));
+            state.R[1] = (r[1] < 0.1 ? -1 : (r[1] >= 0.9 ? 1 : 0));
+            state.R[2] = (r[2] < 0.1 ? -1 : (r[2] >= 0.9 ? 1 : 0));
+            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] >= 0.9 ? 1 : 0)));
+            state.R[4] = ((r[4] < 0.01 ? -1 : (r[4] >= 0.02 ? 1 : 0)));
             break;
         case enclosing:
-            state.R[0] = (r[0] < 0.75 ? -1 : (r[0] < 0.9 ? 1 : 0));
-            state.R[1] = (r[1] < 0.75 ? -1 : (r[1] < 0.9 ? 1 : 0));
-            state.R[2] = (r[2] < 0.75 ? -1 : (r[2] < 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[0] = (r[0] < 0.1 ? -1 : (r[0] >= 0.9 ? 1 : 0));
+            state.R[1] = (r[1] < 0.1 ? -1 : (r[1] >= 0.9 ? 1 : 0));
+            state.R[2] = (r[2] < 0.1 ? -1 : (r[2] >= 0.9 ? 1 : 0));
+            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] >= 0.9 ? 1 : 0)));
+            state.R[4] = ((r[4] < 0.98 ? -1 : (r[4] >= 0.99 ? 1 : 0)));
             break;
         case neutral:
-            state.R[0] = (r[0] < 0.75 ? -1 : (r[0] < 0.9 ? 1 : 0));
-            state.R[1] = (r[1] < 0.75 ? -1 : (r[1] < 0.9 ? 1 : 0));
-            state.R[2] = (r[2] < 0.75 ? -1 : (r[2] < 0.9 ? 1 : 0));
-            state.R[3] = ((r[3] < 0.1 ? -1 : (r[3] > 0.9 ? 1 : 0)));
-            state.R[4] = ((r[4] < 0.15 ? -1 : (r[4] > 0.9 ? 1 : 0)));
+            state.R[0] = (r[0] < 0.01 ? -1 : (r[0] >= 0.99 ? 1 : 0));
+            state.R[1] = (r[1] < 0.01 ? -1 : (r[0] >= 0.99 ? 1 : 0));
+            state.R[2] = (r[2] < 0.01 ? -1 : (r[0] >= 0.99 ? 1 : 0));
+            state.R[3] = (r[3] < 0.01 ? -1 : (r[0] >= 0.99 ? 1 : 0));
+            state.R[4] = (r[4] < 0.01 ? -1 : (r[0] >= 0.99 ? 1 : 0));
             break;
             
         default:
@@ -169,6 +168,10 @@ float Particle::GetNormalizedWeight()
 {
     return weight_normalized;
 }
+void Particle::SetWeights(double newWeight)  // reset to 1/N
+{
+    weight = weight_normalized = newWeight;
+}
 Particle* Particle::Copy()
 {
     Particle* p = new Particle();
@@ -183,6 +186,7 @@ Particle* Particle::Copy()
             ds->hiddenState[i] = state.hiddenState[i];
             ds->hiddenStateVariance[i] = state.hiddenStateVariance[i];
         }
+    p->SetWeights(weight_normalized);
     
     return p;
 }
@@ -192,7 +196,7 @@ void Particle::Predict()
     Q.makeUnity();  // * 0.01?
     
     // transition for discrete states:
-    state.M = (ranf() < GESTURE_FREQUENCY);
+    state.M = 0; //(ranf() < GESTURE_FREQUENCY);
     if (state.M == 0)
     {
         //        state.L = state.L;    // L=L, R=R if M is 0
@@ -200,7 +204,7 @@ void Particle::Predict()
     }
     else
     {
-        state.L = (ShapeQualities)(rand() % 2);
+        state.L = (ShapeQualities)(rand() % 7);
         SampleR();  // get R again!
 //        state.hiddenState[i][2] = 0;      // reset V0 when M=1 ?
     }
@@ -257,27 +261,31 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
 
-        for (int j = 0; j < 3; j++)
-        {
+//        for (int j = 0; j < 3; j++)
+//        {
             // this is the weight based on X:
-//            if (state.hiddenStateVariance[i][j] != 0)
-                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2) * 0.5; // / state.hiddenStateVariance[i][j];
+            if (state.hiddenStateVariance[i][0][0] != 0)
+                temp = 1.0 / (1 + abs(state.y[i][0] - state.hiddenState[i][0]) / state.hiddenStateVariance[i][0][0]);
+//            temp = 1.0 / (1.0 + abs(state.y[i][0] - state.hiddenState[i][0]));
+//                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2) * 0.5; // / state.hiddenStateVariance[i][j];
 //            else
 //                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2); // / 0.001;    //
             temp = temp < 0 ? 0 : temp;
             weight += temp;
 //            weight += xWeight;      // + vWeight;
-        }
+//        }
     }
 //    weight *= 0.071428571; // variance = E(deviation^2)/N-1. N = 15
 //    if (weight != 0)
 //        weight = 1.0 / weight;
+//    if (weight_normalized != 0)
+    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
 }
 float Particle::NormalizeWeight(float sumWeight)     // normalize weight, set weight_normalized and return it
 {
-    if (sumWeight != 0)
+    if (sumWeight > 0)
         weight_normalized = weight / sumWeight;
     else
         weight_normalized = 0;

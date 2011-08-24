@@ -20,8 +20,15 @@ ParticleFilter::~ParticleFilter()
 
 void ParticleFilter::InitParticles(int count)  // init and randomly sample Count particles 
 {
+    if (count == 0)
+        return;
+    
+    float newWeight = 1.0 / count;
     for (int i = 0; i < count; i++)
+    {
         myParticles.push_back(new Particle());
+        myParticles.at(i)->SetWeights(newWeight);
+    }
 }
 void ParticleFilter::Predict()
 {
@@ -39,8 +46,12 @@ void ParticleFilter::CalculateWeights(vector<float>* y)
 }
 void ParticleFilter::Resample()
 {
+    if (myParticles.size() == 0)
+        return;
+    
     float cumlativeWeight[myParticles.size()];
     float weight = 0;
+    double newWeight = 1 / myParticles.size();
     for (int i = 0; i < myParticles.size(); i++)
         cumlativeWeight[i] = weight = weight + myParticles.at(i)->GetNormalizedWeight();
     
@@ -52,6 +63,7 @@ void ParticleFilter::Resample()
             if (u < cumlativeWeight[j])
             {
                 newParticles.push_back(myParticles.at(j)->Copy());
+//                newParticles.at(newParticles.size()-1)->SetWeights(newWeight);
                 break;  // j
             }
     }
@@ -79,4 +91,8 @@ void ParticleFilter::ExactUpdate(vector<float>* y)
 {
     for (int i = 0; i < myParticles.size(); i++)
         myParticles.at(i)->KalmanForwardRecursion();
+}
+std::vector<Particle*>* ParticleFilter::GetParticles()
+{
+    return &myParticles;
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		48E865E61405278A0079A311 /* OSCSend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E865E41405278A0079A311 /* OSCSend.cpp */; };
 		A0AA84AB13DDC25300C5D817 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84AA13DDC25300C5D817 /* main.cpp */; };
 		A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B213DDC27B00C5D817 /* Particle.cpp */; };
 		A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */; };
@@ -27,6 +28,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		48E865E41405278A0079A311 /* OSCSend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCSend.cpp; sourceTree = "<group>"; };
+		48E865E51405278A0079A311 /* OSCSend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSCSend.h; sourceTree = "<group>"; };
 		A0AA84A613DDC25300C5D817 /* LabanDBN */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LabanDBN; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0AA84AA13DDC25300C5D817 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = LabanDBN.1; sourceTree = "<group>"; };
@@ -71,6 +74,8 @@
 		A0AA84A913DDC25300C5D817 /* LabanDBN */ = {
 			isa = PBXGroup;
 			children = (
+				48E865E41405278A0079A311 /* OSCSend.cpp */,
+				48E865E51405278A0079A311 /* OSCSend.h */,
 				A0CA9B7813F52EE6005F3B5A /* OSCReceive.h */,
 				A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */,
 				A0AA84AA13DDC25300C5D817 /* main.cpp */,
@@ -134,6 +139,7 @@
 				A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */,
 				A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */,
 				A0CA9B7D13F52F8E005F3B5A /* OSCReceive.cpp in Sources */,
+				48E865E61405278A0079A311 /* OSCSend.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

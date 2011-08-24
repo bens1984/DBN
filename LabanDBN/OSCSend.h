@@ -48,4 +48,4 @@ public:
 };
 
 //extern myOSCHandle* myOSC;		//global OSC handle
-#endif __SimpleSend_h_
+#endif //__SimpleSend_h_

@@ -28,4 +28,6 @@ public:
     void Resample();
     void ExactUpdate(vector<float>* y); // update continuous states with Kalman Filter
     Particle* GetDominantParticle();
+    
+    vector<Particle*>* GetParticles();
 };
