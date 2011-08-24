@@ -41,7 +41,7 @@ struct dbnState {
             hiddenState[i].dimension(3);
             hiddenState[i].fill(0);
             hiddenStateVariance[i].dimension(3);
-            y[i].dimension(3);
+            y[i].dimension(1);
             y[i].fill(0);
         }
         updateFunction.dimension(3);
@@ -95,5 +95,5 @@ public:
     void Predict();                         // predict next time step
     float CalculateWeight(vector<float> *y);                    // calculate the importance of this particle
     float NormalizeWeight(float sumWeight);     // normalize weight, set weight_normalized and return it
-    void KalmanForwardRecursion();      // exact step to update continuous state variables
+    void KalmanForwardRecursion(bool print);      // exact step to update continuous state variables
 };

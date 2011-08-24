@@ -20,7 +20,7 @@
  
  */
 
-//#define PRINT_DEBUG       // <- define to print matrix updates during Kalman Filter. Set ParticleFilter size to 1 or be very afraid!
+#define PRINT_DEBUG       // <- define to print matrix updates during Kalman Filter. Set ParticleFilter size to 1 or be very afraid!
 
 #include "Particle.h"
 #include <math.h>
@@ -38,7 +38,7 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
 {
     // how is state defined? what is the initial distribution?
     state.M = 0; // M = 0
-    state.L = (ShapeQualities)(rand() % 7);    // L = {0...6}
+    state.L = (ShapeQualities)(rand() % 3);    // L = {0...6}
     // sample R given L
     SampleR();
     
@@ -193,7 +193,8 @@ Particle* Particle::Copy()
 void Particle::Predict()
 {
     CWSquareMatrix Q(3);
-    Q.makeUnity();  // * 0.01?
+    Q.makeUnity(); 
+//    Q = Q * 0.01;
     
     // transition for discrete states:
     state.M = 0; //(ranf() < GESTURE_FREQUENCY);
@@ -213,7 +214,11 @@ void Particle::Predict()
     {        
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
-        state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);  
+        state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
+        
+        state.hiddenState[i][0] += GetGaussianSample(0, state.hiddenStateVariance[i][0][0]);
+        state.hiddenState[i][1] += GetGaussianSample(0, state.hiddenStateVariance[i][1][1]);
+        state.hiddenState[i][2] += GetGaussianSample(0, state.hiddenStateVariance[i][2][2]); 
     }
     
 //    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
@@ -255,18 +260,18 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
     {
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << " === ";
-        state.y[i][1] = y->at(i) - state.y[i][0];  // calculate dif
+//        state.y[i][1] = y->at(i) - state.y[i][0];  // calculate dif
         state.y[i][0] = y->at(i);           // store current observation
-        state.y[i][2] = abs(state.y[i][1]); 
+//        state.y[i][2] = abs(state.y[i][1]); 
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
 
 //        for (int j = 0; j < 3; j++)
 //        {
             // this is the weight based on X:
-            if (state.hiddenStateVariance[i][0][0] != 0)
-                temp = 1.0 / (1 + abs(state.y[i][0] - state.hiddenState[i][0]) / state.hiddenStateVariance[i][0][0]);
-//            temp = 1.0 / (1.0 + abs(state.y[i][0] - state.hiddenState[i][0]));
+//            if (state.hiddenStateVariance[i][0][0] != 0)
+//                temp = 1.0 / (1 + abs(state.y[i][j] - state.hiddenState[i][j]) / state.hiddenStateVariance[i][j][j]);
+            temp = 1.0 / pow(1.0 + abs(state.y[i][0] - state.hiddenState[i][0]),2);
 //                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2) * 0.5; // / state.hiddenStateVariance[i][j];
 //            else
 //                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2); // / 0.001;    //
@@ -293,7 +298,7 @@ float Particle::NormalizeWeight(float sumWeight)     // normalize weight, set we
 //    cout << "weight:" << weight_normalized << endl;
     return weight_normalized;
 }
-void Particle::KalmanForwardRecursion()
+void Particle::KalmanForwardRecursion(bool print)
 {    
     // k - size of X (hidden state)
     // p - size of Y (observations)
@@ -306,19 +311,24 @@ void Particle::KalmanForwardRecursion()
     // xTemp = working hidden state estimation
     // vTemp - working hidden state estimation variance
     int matSize = state.hiddenState[0].getRows();
-	CWSquareMatrix Q(matSize), R(matSize), vTemp(matSize);
-    CWMatrix xTemp(matSize,1), yTemp(matSize,1);
-	CWSquareMatrix C(matSize), K, S;  // K - temp matrix
-    CWMatrix cTransp(C.getCols(), C.getRows()), control(matSize,1);
+	CWSquareMatrix R(1), vTemp(matSize);  // Q(matSize), 
+    CWMatrix xTemp(matSize,1), yTemp;
+	CWMatrix K(3,1);
+    CWSquareMatrix S;  // K - temp matrix
+    CWMatrix C(1, matSize);
+    CWMatrix cTransp(C.getCols(), 1);
+//    CWMatrix cTransp(C.getCols(), C.getRows()), control(matSize,1);
     CWSquareMatrix F(matSize), G(matSize);  // parameters/transforms for control signal
     CWSquareMatrix Ident(3);
     
-    control.fill(0);    // no control at the moment.
+//    control.fill(0);    // no control at the moment.
     R.makeUnity();
-//    R *= 0.01;
-    Q.makeUnity();
+    R *= 0.01;
+//    Q.makeUnity();
 //    Q *= 0.01;
-    C.makeUnity();
+//    C.makeUnity();
+    C.fill(0);
+    C[0][0] = 1;
     cTransp.storeTranspose(C);
     F.fill(0);
     G.fill(0);
@@ -328,34 +338,36 @@ void Particle::KalmanForwardRecursion()
     {        
         xTemp = (CWMatrix)state.hiddenState[i];
 //        xTemp = state.updateFunction * xTemp; // + F * control;       // <- this is already done in our prediction function
-        if (i == 0)
-            PrintMatrix("x=Ax+Fu", xTemp);
+//        if (i == 0)
+//            PrintMatrix("x=Ax+Fu", xTemp);
         vTemp = (CWMatrix)state.hiddenStateVariance[i];
-        vTemp = state.updateFunction * vTemp * transpose(state.updateFunction) + Q; //*transpose(Q);        
-        if (i == 0)
-            PrintMatrix("v=AvA'+Q", vTemp);
+//        vTemp = state.updateFunction * vTemp * transpose(state.updateFunction) + Q; //*transpose(Q);        
+//        if (i == 0)
+//            PrintMatrix("v=AvA'+Q", vTemp);
         
         S = C * vTemp * cTransp + R;//*transpose(R);       // de Freitas has this as R*R', but that is assuming a k x 1 matrix.
-        if (i == 0)
-        {
-            PrintMatrix("S=CvC'+R", S);
-            PrintMatrix("S-inverse", inv(S));
-        }
-        K = vTemp * cTransp * inv(S);
-        if (i == 0)
-            PrintMatrix("y", (CWMatrix)state.y[i]);
+//        if (i == 0)
+//        {
+//            PrintMatrix("S=CvC'+R", S);
+//            PrintMatrix("S-inverse", inv(S));
+//        }
+        CWSquareMatrix iSS = inv(S);
+        CWMatrix tt = cTransp * iSS;
+        K = vTemp * tt; //cTransp * inv(S);
+//        if (i == 0)
+//            PrintMatrix("y", (CWMatrix)state.y[i]);
         yTemp = (CWMatrix)state.y[i] - (C * xTemp); // + G * control);
-        if (i == 0)
-            PrintMatrix("y-Cx+Gu", yTemp);
-        if (i == 0)
-            PrintMatrix("K=vC'S^-1", K);
+//        if (i == 0)
+//            PrintMatrix("y-Cx+Gu", yTemp);
+//        if (i == 0)
+//            PrintMatrix("K=vC'S^-1", K);
         xTemp = xTemp + K * yTemp;
         xTemp[2][0] = abs(xTemp[2][0]);  // keep V0 positive
-        if (i == 0)
-            PrintMatrix("x=x+Ky", xTemp);
+//        if (i == 0)
+//            PrintMatrix("x=x+Ky", xTemp);
         vTemp = (Ident - K * C) * vTemp;
 //        vTemp = vTemp - K * C * vTemp;
-        if (i == 0)
+        if (i == 0 && print)
             PrintMatrix("v=v-KCv", vTemp);
         // store changes!
         state.hiddenState[i] = xTemp;

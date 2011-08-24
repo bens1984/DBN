@@ -24,11 +24,15 @@ void makeGraph(vector<Particle*>* filt)
         graph[(int)(dbn->L)] += p->GetNormalizedWeight();
     }
     myOSCHandle::getSingleton()->oscSend("/graph", 7, &graph[0]);
+    float weights[filt->size()];
+    for (int i = 0; i < filt->size(); i++)
+        weights[i] = filt->at(i)->GetNormalizedWeight();
+    myOSCHandle::getSingleton()->oscSend("/w", filt->size(), &weights[0]);
 }
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(1000);
+    ParticleFilter myFilter(256);
     OSCReceive myOSC;
     
     myOSC.StartReception();

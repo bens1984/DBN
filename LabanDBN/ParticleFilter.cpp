@@ -90,7 +90,7 @@ Particle* ParticleFilter::GetDominantParticle()
 void ParticleFilter::ExactUpdate(vector<float>* y)
 {
     for (int i = 0; i < myParticles.size(); i++)
-        myParticles.at(i)->KalmanForwardRecursion();
+        myParticles.at(i)->KalmanForwardRecursion(i==0);
 }
 std::vector<Particle*>* ParticleFilter::GetParticles()
 {
