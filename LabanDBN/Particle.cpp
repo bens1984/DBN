@@ -25,6 +25,9 @@
 #include "Particle.h"
 #include <math.h>
 
+static const double twoPi = 6.283185307179586476925286766559005768394; // 2 * pi
+static const double e = 2.718281828459045235360287471352662497757; // e
+
 Particle::Particle() : weight(0), weight_normalized(0)
 {    
     Initialize();
@@ -80,7 +83,7 @@ void Particle::Resample(Particle* seed)   // creates a new particle that is dist
         for (int i = 0; i < 5; i++)
         {
             state.hiddenStateVariance[i].makeUnity();
-            state.hiddenStateVariance[i] *= 5.0;
+            state.hiddenStateVariance[i] *= 1.0;
         }
     }
 //    float alpha = 0.5;  // filtering constant for V update
@@ -216,9 +219,9 @@ void Particle::Predict()
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
         
-        state.hiddenState[i][0] += GetGaussianSample(0, state.hiddenStateVariance[i][0][0]);
+//        state.hiddenState[i][0] += GetGaussianSample(0, state.hiddenStateVariance[i][0][0]);
         state.hiddenState[i][1] += GetGaussianSample(0, state.hiddenStateVariance[i][1][1]);
-        state.hiddenState[i][2] += GetGaussianSample(0, state.hiddenStateVariance[i][2][2]); 
+        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
     }
     
 //    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
@@ -266,24 +269,12 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
 
-//        for (int j = 0; j < 3; j++)
-//        {
-            // this is the weight based on X:
-//            if (state.hiddenStateVariance[i][0][0] != 0)
-//                temp = 1.0 / (1 + abs(state.y[i][j] - state.hiddenState[i][j]) / state.hiddenStateVariance[i][j][j]);
-            temp = 1.0 / pow(1.0 + abs(state.y[i][0] - state.hiddenState[i][0]),2);
-//                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2) * 0.5; // / state.hiddenStateVariance[i][j];
-//            else
-//                temp = 1.0 - pow(state.y[i][j] - state.hiddenState[i][j], 2); // / 0.001;    //
-            temp = temp < 0 ? 0 : temp;
+        temp = (1 / sqrt(twoPi * state.hiddenStateVariance[i][0][0])) * pow(e, 
+                (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * state.hiddenStateVariance[i][0][0]));
             weight += temp;
-//            weight += xWeight;      // + vWeight;
 //        }
     }
-//    weight *= 0.071428571; // variance = E(deviation^2)/N-1. N = 15
-//    if (weight != 0)
-//        weight = 1.0 / weight;
-//    if (weight_normalized != 0)
+    
     weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
@@ -338,12 +329,12 @@ void Particle::KalmanForwardRecursion(bool print)
     {        
         xTemp = (CWMatrix)state.hiddenState[i];
 //        xTemp = state.updateFunction * xTemp; // + F * control;       // <- this is already done in our prediction function
-//        if (i == 0)
-//            PrintMatrix("x=Ax+Fu", xTemp);
+        if (i == 0 && print)
+            PrintMatrix("x=Ax+Fu", xTemp);
         vTemp = (CWMatrix)state.hiddenStateVariance[i];
 //        vTemp = state.updateFunction * vTemp * transpose(state.updateFunction) + Q; //*transpose(Q);        
-//        if (i == 0)
-//            PrintMatrix("v=AvA'+Q", vTemp);
+        if (i == 0 && print)
+            PrintMatrix("v=AvA'+Q", vTemp);
         
         S = C * vTemp * cTransp + R;//*transpose(R);       // de Freitas has this as R*R', but that is assuming a k x 1 matrix.
 //        if (i == 0)
@@ -363,10 +354,10 @@ void Particle::KalmanForwardRecursion(bool print)
 //            PrintMatrix("K=vC'S^-1", K);
         xTemp = xTemp + K * yTemp;
         xTemp[2][0] = abs(xTemp[2][0]);  // keep V0 positive
-//        if (i == 0)
-//            PrintMatrix("x=x+Ky", xTemp);
+        if (i == 0 && print)
+            PrintMatrix("x=x+Ky", xTemp);
         vTemp = (Ident - K * C) * vTemp;
-//        vTemp = vTemp - K * C * vTemp;
+        vTemp = vTemp - K * C * vTemp;
         if (i == 0 && print)
             PrintMatrix("v=v-KCv", vTemp);
         // store changes!

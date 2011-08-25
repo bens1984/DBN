@@ -10,7 +10,7 @@
 
 #define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
 
-#define V_V0_INFLUENCE 0.95          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
+#define V_V0_INFLUENCE 0.75          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
 
 #include <vector>
 #include <math.h>

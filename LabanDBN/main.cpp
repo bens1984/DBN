@@ -32,7 +32,7 @@ void makeGraph(vector<Particle*>* filt)
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(256);
+    ParticleFilter myFilter(100);
     OSCReceive myOSC;
     
     myOSC.StartReception();
