@@ -6,6 +6,8 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
+#define FILTERSIZE 512
+
 #include <iostream>
 #include "OSCReceive.h"
 #include "OSCSend.h"
@@ -13,7 +15,7 @@
 
 void makeGraph(vector<Particle*>* filt)
 {
-    float graph[7];
+    float graph[7], sum = 0;
     for (int i = 0; i < 7; i++)
         graph[i] = 0;
     
@@ -21,18 +23,22 @@ void makeGraph(vector<Particle*>* filt)
     {
         Particle* p = *it;
         dbnState* dbn = p->GetState();
-        graph[(int)(dbn->L)] += p->GetNormalizedWeight();
+        graph[(int)(dbn->L)] += pow(p->GetNormalizedWeight(), 2);
     }
+    for (int i = 0; i < 7; i++)
+        sum += graph[i];
+    for (int i = 0; i < 7; i++)
+        graph[i] /= sum;
     myOSCHandle::getSingleton()->oscSend("/graph", 7, &graph[0]);
-    float weights[filt->size()];
-    for (int i = 0; i < filt->size(); i++)
+    float weights[100];
+    for (int i = 0; i < 100; i++)
         weights[i] = filt->at(i)->GetNormalizedWeight();
-    myOSCHandle::getSingleton()->oscSend("/w", filt->size(), &weights[0]);
+    myOSCHandle::getSingleton()->oscSend("/w", 100, &weights[0]);
 }
 
 int main (int argc, const char * argv[])
 {
-    ParticleFilter myFilter(100);
+    ParticleFilter myFilter(FILTERSIZE);
     OSCReceive myOSC;
     
     myOSC.StartReception();
@@ -50,7 +56,7 @@ int main (int argc, const char * argv[])
             if (p != NULL)
             {
                 dbnState* dbn = p->GetState();
-                cout <<  p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
+                cout << endl << myFilter.GetEffectiveNumber() << " weight: " << p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
                 for (int i = 0; i < 5; i++)
                     cout << dbn->R[i] << ",";
                 cout << "] hiddenState:[";
@@ -72,7 +78,11 @@ int main (int argc, const char * argv[])
                 cout << "no maximal particle found.";
             cout << endl;
             makeGraph(myFilter.GetParticles());
-            myFilter.Resample();
+//            if (myFilter.GetEffectiveNumber() < FILTERSIZE * 0.75)
+//            {
+//                cout << "resampling" << endl;
+                myFilter.Resample();
+//            }
             myFilter.ExactUpdate(&(data.data));
         }
     }

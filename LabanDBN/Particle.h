@@ -5,12 +5,18 @@
 //  Created by Ben Smith on 7/25/11.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
+#pragma once
+
 #define ranf() \
 ((double)random()/(1.0+(double)RAND_MAX)) // Uniform from interval [0,1) */
 
 #define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
 
-#define V_V0_INFLUENCE 0.75          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
+#define V_V0_INFLUENCE 0.95          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
+
+
+#define twoPi 6.283185307179586476925286766559005768394 // 2 * pi
+#define e 2.718281828459045235360287471352662497757 // e
 
 #include <vector>
 #include <math.h>
@@ -61,18 +67,30 @@ private:
     
     double GetGaussianSample(double mean, double variance)
     {
-        double x1, x2, w, y1, y2;
+        double u, v, x, y;
+        u = ranf();
+        v = ranf();
         
-        do {
-            x1 = 2.0 * ranf() - 1.0;
-            x2 = 2.0 * ranf() - 1.0;
-            w = x1 * x1 + x2 * x2;
-        } while ( w >= 1.0 );
+        u = sqrt(-2 * log (u) );
+        v = twoPi * v;
         
-        w = sqrt( (-2.0 * log( w ) ) / w );
-        y1 = x1 * w;
-        y2 = x2 * w;
-        return y1;  // could return y2 also
+        x = u * cos(v) * variance + mean;
+        y = u * sin(v) * variance + mean;
+        
+        return x;
+        
+//        double x1, x2, w, y1, y2;
+//        
+//        do {
+//            x1 = 2.0 * ranf() - 1.0;
+//            x2 = 2.0 * ranf() - 1.0;
+//            w = x1 * x1 + x2 * x2;
+//        } while ( w >= 1.0 );
+//        
+//        w = sqrt( (-2.0 * log( w ) ) / w );
+//        y1 = x1 * w;
+//        y2 = x2 * w;
+//        return y1;  // could return y2 also
     }
     
     void PrintMatrix(string name, const CWMatrix &mat);

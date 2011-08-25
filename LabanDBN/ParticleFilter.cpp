@@ -51,7 +51,7 @@ void ParticleFilter::Resample()
     
     float cumlativeWeight[myParticles.size()];
     float weight = 0;
-    double newWeight = 1 / myParticles.size();
+    double newWeight = 1.0 / myParticles.size();
     for (int i = 0; i < myParticles.size(); i++)
         cumlativeWeight[i] = weight = weight + myParticles.at(i)->GetNormalizedWeight();
     
@@ -91,6 +91,15 @@ void ParticleFilter::ExactUpdate(vector<float>* y)
 {
     for (int i = 0; i < myParticles.size(); i++)
         myParticles.at(i)->KalmanForwardRecursion(i==0);
+}
+double ParticleFilter::GetEffectiveNumber()        // calculate the effective number of particles
+{
+    double effective = 0;
+    for (int i = 0; i < myParticles.size(); i++)
+        effective += pow(myParticles.at(i)->GetNormalizedWeight(), 2);
+    if (effective > 0)
+        effective = 1 / effective;
+    return effective;
 }
 std::vector<Particle*>* ParticleFilter::GetParticles()
 {

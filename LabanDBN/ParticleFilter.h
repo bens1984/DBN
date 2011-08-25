@@ -28,6 +28,6 @@ public:
     void Resample();
     void ExactUpdate(vector<float>* y); // update continuous states with Kalman Filter
     Particle* GetDominantParticle();
-    
+    double GetEffectiveNumber();        // calculate the effective number of particles
     vector<Particle*>* GetParticles();
 };

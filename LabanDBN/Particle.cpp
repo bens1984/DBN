@@ -25,9 +25,6 @@
 #include "Particle.h"
 #include <math.h>
 
-static const double twoPi = 6.283185307179586476925286766559005768394; // 2 * pi
-static const double e = 2.718281828459045235360287471352662497757; // e
-
 Particle::Particle() : weight(0), weight_normalized(0)
 {    
     Initialize();
@@ -56,7 +53,8 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
         state.hiddenStateVariance[i].makeUnity();
         state.hiddenStateVariance[i] *= 5.0;
         state.y[i].fill(0); // initial observations
-//        if (state.R[i] != 0 && state.M == 0)   // v0
+
+        //        if (state.R[i] != 0 && state.M == 0)   // v0
 //            state.v0[i] = exp(GetGaussianSample(log(state.v0[i]), v0Variance));
 //        else
 //            state.v0[i] = exp(GetGaussianSample(log(state.v0[i]), 1000));   // uniform initialiazition
@@ -83,7 +81,7 @@ void Particle::Resample(Particle* seed)   // creates a new particle that is dist
         for (int i = 0; i < 5; i++)
         {
             state.hiddenStateVariance[i].makeUnity();
-            state.hiddenStateVariance[i] *= 1.0;
+//            state.hiddenStateVariance[i] *= 1.0;
         }
     }
 //    float alpha = 0.5;  // filtering constant for V update
@@ -182,9 +180,12 @@ Particle* Particle::Copy()
 //    memcpy(ds, &state, sizeof(dbnState));
     
 //    cout << "copy " << ds << " y: " << ds->y[0][0] << "::" << state.y[0][0] << endl;
+    ds->M = state.M;
+    ds->L = state.L;
     for (int i = 0; i < 5; i++)
 //        for (int j = 0; j < state.y[i].getRows(); j++)
         {
+            ds->R[i] = state.R[i];
             ds->y[i] = state.y[i];
             ds->hiddenState[i] = state.hiddenState[i];
             ds->hiddenStateVariance[i] = state.hiddenStateVariance[i];
@@ -200,28 +201,35 @@ void Particle::Predict()
 //    Q = Q * 0.01;
     
     // transition for discrete states:
-    state.M = 0; //(ranf() < GESTURE_FREQUENCY);
+    state.M = (ranf() < GESTURE_FREQUENCY);
     if (state.M == 0)
     {
+        state.M = 1;
         //        state.L = state.L;    // L=L, R=R if M is 0
         //        state.R = state.R;
     }
     else
     {
-        state.L = (ShapeQualities)(rand() % 7);
+        state.L = (ShapeQualities)(rand() % 3);
         SampleR();  // get R again!
 //        state.hiddenState[i][2] = 0;      // reset V0 when M=1 ?
     }
     
     for (int i = 0; i < 5; i++)
     {        
+        if (state.R[i] != 0 && state.M == 0)   // v0
+            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 2.0)); //state.hiddenStateVariance[i][2][2]));
+        else
+            state.hiddenState[i][2] = ranf() * 10.0 - 5; //exp(GetGaussianSample(log(state.hiddenState[i][2]), 10));   // uniform initialiazition
+        state.hiddenState[i][2] = abs(state.hiddenState[i][2]);
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
         
 //        state.hiddenState[i][0] += GetGaussianSample(0, state.hiddenStateVariance[i][0][0]);
-        state.hiddenState[i][1] += GetGaussianSample(0, state.hiddenStateVariance[i][1][1]);
-        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
+        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE/1+V_V0_INFLUENCE) * state.hiddenStateVariance[i][1][1]);
+//        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
+//        state.hiddenState[i][2] = abs(state.hiddenState[i][0]);        // this is probably why they use the log stuff, because V0 can never become negative!
     }
     
 //    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
@@ -268,14 +276,16 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
 //        state.y[i][2] = abs(state.y[i][1]); 
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
-
-        temp = (1 / sqrt(twoPi * state.hiddenStateVariance[i][0][0])) * pow(e, 
-                (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * state.hiddenStateVariance[i][0][0]));
+        double squaredVariance = pow(state.hiddenStateVariance[i][0][0], 2);
+        if (squaredVariance == 0)
+            squaredVariance = 0.000001;
+        temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e, 
+                (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
             weight += temp;
 //        }
     }
     
-    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
+//    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
 }
@@ -304,10 +314,9 @@ void Particle::KalmanForwardRecursion(bool print)
     int matSize = state.hiddenState[0].getRows();
 	CWSquareMatrix R(1), vTemp(matSize);  // Q(matSize), 
     CWMatrix xTemp(matSize,1), yTemp;
-	CWMatrix K(3,1);
+	CWMatrix K(matSize,1);
     CWSquareMatrix S;  // K - temp matrix
-    CWMatrix C(1, matSize);
-    CWMatrix cTransp(C.getCols(), 1);
+    CWMatrix C(1, matSize), cTransp(matSize, 1);
 //    CWMatrix cTransp(C.getCols(), C.getRows()), control(matSize,1);
     CWSquareMatrix F(matSize), G(matSize);  // parameters/transforms for control signal
     CWSquareMatrix Ident(3);
@@ -356,7 +365,7 @@ void Particle::KalmanForwardRecursion(bool print)
         xTemp[2][0] = abs(xTemp[2][0]);  // keep V0 positive
         if (i == 0 && print)
             PrintMatrix("x=x+Ky", xTemp);
-        vTemp = (Ident - K * C) * vTemp;
+//        vTemp = (Ident - K * C) * vTemp;
         vTemp = vTemp - K * C * vTemp;
         if (i == 0 && print)
             PrintMatrix("v=v-KCv", vTemp);
