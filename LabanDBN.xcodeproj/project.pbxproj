@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		48E865E61405278A0079A311 /* OSCSend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E865E41405278A0079A311 /* OSCSend.cpp */; };
+		A09326741406B50C00237DFA /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A09326731406B50C00237DFA /* Particle.cpp */; };
 		A0AA84AB13DDC25300C5D817 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84AA13DDC25300C5D817 /* main.cpp */; };
-		A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B213DDC27B00C5D817 /* Particle.cpp */; };
 		A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */; };
 		A0CA9B7B13F52F07005F3B5A /* liboscpack.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A0CA9B7A13F52F07005F3B5A /* liboscpack.a */; };
 		A0CA9B7D13F52F8E005F3B5A /* OSCReceive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */; };
@@ -30,10 +30,10 @@
 /* Begin PBXFileReference section */
 		48E865E41405278A0079A311 /* OSCSend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCSend.cpp; sourceTree = "<group>"; };
 		48E865E51405278A0079A311 /* OSCSend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSCSend.h; sourceTree = "<group>"; };
+		A09326731406B50C00237DFA /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
 		A0AA84A613DDC25300C5D817 /* LabanDBN */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LabanDBN; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0AA84AA13DDC25300C5D817 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = LabanDBN.1; sourceTree = "<group>"; };
-		A0AA84B213DDC27B00C5D817 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
 		A0AA84B313DDC27B00C5D817 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particle.h; sourceTree = "<group>"; };
 		A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleFilter.cpp; sourceTree = "<group>"; };
 		A0AA84B613DDCFCB00C5D817 /* ParticleFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleFilter.h; sourceTree = "<group>"; };
@@ -79,11 +79,11 @@
 				A0CA9B7813F52EE6005F3B5A /* OSCReceive.h */,
 				A0CA9B7C13F52F8E005F3B5A /* OSCReceive.cpp */,
 				A0AA84AA13DDC25300C5D817 /* main.cpp */,
-				A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */,
-				A0AA84B213DDC27B00C5D817 /* Particle.cpp */,
+				A09326731406B50C00237DFA /* Particle.cpp */,
 				A0AA84B313DDC27B00C5D817 /* Particle.h */,
 				A0AA84B513DDCFCB00C5D817 /* ParticleFilter.cpp */,
 				A0AA84B613DDCFCB00C5D817 /* ParticleFilter.h */,
+				A0AA84AC13DDC25300C5D817 /* LabanDBN.1 */,
 			);
 			path = LabanDBN;
 			sourceTree = "<group>";
@@ -136,10 +136,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				A0AA84AB13DDC25300C5D817 /* main.cpp in Sources */,
-				A0AA84B413DDC27B00C5D817 /* Particle.cpp in Sources */,
 				A0AA84B713DDCFCB00C5D817 /* ParticleFilter.cpp in Sources */,
 				A0CA9B7D13F52F8E005F3B5A /* OSCReceive.cpp in Sources */,
 				48E865E61405278A0079A311 /* OSCSend.cpp in Sources */,
+				A09326741406B50C00237DFA /* Particle.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

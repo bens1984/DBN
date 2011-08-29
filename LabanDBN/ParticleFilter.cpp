@@ -58,7 +58,7 @@ void ParticleFilter::Resample()
     std::vector<Particle*> newParticles;
     for (int i = 0; i < myParticles.size(); i++)
     {
-        double u = ranf();  // get a uniform sample
+        double u = i / (double)myParticles.size(); //ranf();  // get a uniform sample
         for (int j = 0; j < myParticles.size(); j++)
             if (u < cumlativeWeight[j])
             {

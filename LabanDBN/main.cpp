@@ -6,7 +6,7 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#define FILTERSIZE 512
+#define FILTERSIZE 100
 
 #include <iostream>
 #include "OSCReceive.h"
@@ -78,11 +78,11 @@ int main (int argc, const char * argv[])
                 cout << "no maximal particle found.";
             cout << endl;
             makeGraph(myFilter.GetParticles());
-//            if (myFilter.GetEffectiveNumber() < FILTERSIZE * 0.75)
-//            {
-//                cout << "resampling" << endl;
+            if (myFilter.GetEffectiveNumber() < FILTERSIZE * 0.75)
+            {
+                cout << "resampling" << endl;
                 myFilter.Resample();
-//            }
+            }
             myFilter.ExactUpdate(&(data.data));
         }
     }

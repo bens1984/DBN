@@ -276,7 +276,7 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
 //        state.y[i][2] = abs(state.y[i][1]); 
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
-        double squaredVariance = state.hiddenStateVariance[i][0][0]; //pow(state.hiddenStateVariance[i][0][0], 2);
+        double squaredVariance = pow(state.hiddenStateVariance[i][0][0], 2);
         if (squaredVariance == 0)
             squaredVariance = 0.000001;
         temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e, 
@@ -285,11 +285,7 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
 //        }
     }
     
-    if (weight > 0)
-        weight = 1 / weight;
-    else
-        weight = MAXFLOAT;
-    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
+//    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
 }
