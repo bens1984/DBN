@@ -6,7 +6,7 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#define FILTERSIZE 100
+#define FILTERSIZE 1
 
 #include <iostream>
 #include "OSCReceive.h"
@@ -30,10 +30,10 @@ void makeGraph(vector<Particle*>* filt)
     for (int i = 0; i < 7; i++)
         graph[i] /= sum;
     myOSCHandle::getSingleton()->oscSend("/graph", 7, &graph[0]);
-    float weights[100];
-    for (int i = 0; i < 100; i++)
-        weights[i] = filt->at(i)->GetNormalizedWeight();
-    myOSCHandle::getSingleton()->oscSend("/w", 100, &weights[0]);
+//    float weights[100];
+//    for (int i = 0; i < 100; i++)
+//        weights[i] = filt->at(i)->GetNormalizedWeight();
+//    myOSCHandle::getSingleton()->oscSend("/w", 100, &weights[0]);
 }
 
 int main (int argc, const char * argv[])

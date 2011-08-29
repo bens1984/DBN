@@ -10,6 +10,7 @@
 #define ranf() \
 ((double)random()/(1.0+(double)RAND_MAX)) // Uniform from interval [0,1) */
 
+#define fix(d) (d > 0 ? (int)d : (int)d-1)
 
 #define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
 
@@ -22,8 +23,6 @@
 #include <vector>
 #include <math.h>
 #include "cwmtx.h" // <- part of the CWTMatrix library
-
-#define fix(d) (d > 0 ? floor(d) : ceil(d))
 
 using namespace std;
 
@@ -50,7 +49,7 @@ struct dbnState {
             hiddenState[i].dimension(3);
             hiddenState[i].fill(0);
             hiddenStateVariance[i].dimension(3);
-            y[i].dimension(3);
+            y[i].dimension(1);
             y[i].fill(0);
         }
         updateFunction.dimension(3);
@@ -70,7 +69,7 @@ private:
     
     double GetGaussianSample(double mean, double variance)
     {
-        double u, v, x; //, y;
+        double u, v, x, y;
         u = ranf();
         v = ranf();
         
@@ -78,7 +77,7 @@ private:
         v = twoPi * v;
         
         x = u * cos(v) * variance + mean;
-//        y = u * sin(v) * variance + mean;
+        y = u * sin(v) * variance + mean;
         
         return x;
         

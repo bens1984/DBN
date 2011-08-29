@@ -17,6 +17,10 @@ private:
     int     filterSize;
     vector<Particle*> myParticles;   // particles maintained for this filter
     // PDF ... how can this be represented? both for initial state, for evaluating weights, and selecting new particles
+    void MultinomialResample();
+    void SystematicResample();
+    void ResidualResample();
+    void ImportanceResample();
     
 public:
     ParticleFilter(int size);
