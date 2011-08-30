@@ -38,7 +38,7 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
 {
     // how is state defined? what is the initial distribution?
     state.M = 0; // M = 0
-    state.L = (ShapeQualities)(rand() % 7);    // L = {0...6}
+    state.L = (ShapeQualities)(rand() % 3);    // L = {0...6}
     // sample R given L
     SampleR();
     
@@ -76,7 +76,7 @@ void Particle::Resample(Particle* seed)   // creates a new particle that is dist
     }
     else
     {
-        state.L = (ShapeQualities)(rand() % 5);
+        state.L = (ShapeQualities)(rand() % 2);
         SampleR();
         for (int i = 0; i < 5; i++)
         {
@@ -209,26 +209,25 @@ void Particle::Predict()
     }
     else
     {
-        state.L = (ShapeQualities)(rand() % 7);
+        state.L = (ShapeQualities)(rand() % 3);
         SampleR();  // get R again!
 //        state.hiddenState[i][2] = 0;      // reset V0 when M=1 ?
     }
     
     for (int i = 0; i < 5; i++)
     {        
-//        if (state.R[i] != 0 && state.M == 0)   // v0
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2][2]));
-//        else
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(0.0), 1000.0));   // uniform initialiazition
+        if (state.R[i] != 0 && state.M == 0)   // v0
+            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2][2]));
+        else
+            state.hiddenState[i][2] = exp(GetGaussianSample(log(0.0), 1000.0));   // uniform initialiazition
         state.hiddenState[i][2] = abs(state.hiddenState[i][2]);
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
         
-
-//        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE/1+V_V0_INFLUENCE) * state.hiddenStateVariance[i][1][1]);
-
-        //        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
+//        state.hiddenState[i][0] += GetGaussianSample(0, state.hiddenStateVariance[i][0][0]);
+        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE/1+V_V0_INFLUENCE) * state.hiddenStateVariance[i][1][1]);
+//        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
 //        state.hiddenState[i][2] = abs(state.hiddenState[i][0]);        // this is probably why they use the log stuff, because V0 can never become negative!
     }
     
@@ -281,7 +280,7 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
             squaredVariance = 0.000001;
         temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e, 
                 (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
-        weight += temp; //*temp;
+        weight += temp;
 //        }
     }
 
@@ -368,13 +367,15 @@ void Particle::KalmanForwardRecursion(bool print)
         xTemp[2][0] = abs(xTemp[2][0]);  // keep V0 positive
         if (i == 0 && print)
             PrintMatrix("x=x+Ky", xTemp);
-//        vTemp = (Ident - K * C) * vTemp;
-        vTemp = vTemp - K * C * vTemp;
+        vTemp = (Ident - K * C) * vTemp;
+//        vTemp = vTemp - K * C * vTemp;
         if (i == 0 && print)
             PrintMatrix("v=v-KCv", vTemp);
         // store changes!
         state.hiddenState[i] = xTemp;
         state.hiddenStateVariance[i] = vTemp;
+        if (i == 0 && print)
+            PrintMatrix("variance", state.hiddenStateVariance[i]);
     }
 }
 

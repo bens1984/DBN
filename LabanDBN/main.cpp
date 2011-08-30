@@ -6,7 +6,7 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#define FILTERSIZE 1
+#define FILTERSIZE 1000
 
 #include <iostream>
 #include "OSCReceive.h"
@@ -55,6 +55,8 @@ int main (int argc, const char * argv[])
             Particle* p = myFilter.GetDominantParticle();
             if (p != NULL)
             {
+                float L = p->GetState()->L;
+                myOSCHandle::getSingleton()->oscSend("/sq", 1, &L);
                 dbnState* dbn = p->GetState();
                 cout << endl << myFilter.GetEffectiveNumber() << " weight: " << p->GetNormalizedWeight() << " L:" << dbn->L << " R:[";
                 for (int i = 0; i < 5; i++)

@@ -83,28 +83,28 @@ void ParticleFilter::ResidualResample()
 //    for (std::vector<Particle*>::iterator it = myParticles.begin(); it != myParticles.end(); it++)
     {
         q_residual[i] = count * myParticles.at(i)->GetNormalizedWeight();
-        babySum += N_babies[i] = fix(q_residual[i]);
+        babySum += N_babies[i] = floor(q_residual[i]);
     }
     // Residual number of particles to sample:
     int N_residual = count - babySum;
-    cout << "N_residual " << N_residual << " ";
+//    cout << "N_residual " << N_residual << " ";
     if (N_residual != 0)
     {
         for (i = 0; i < count; i++)
-            q_residual[i] = (q_residual[i] - N_babies[i]) / N_residual;
+            q_residual[i] = (q_residual[i] - N_babies[i]) / (double)N_residual;
         
         float cumulativeDist[count];
         float weight = 0;
         for (i = 0; i < count; i++)
             cumulativeDist[i] = weight = weight + q_residual[i];
         // u = fliplr( cumprod( rand(1,N_residual) .^ (1. / (N_residual:-1:1) ) ) );
-        float cProduct, cumulativeProduct[count];
+        float cProduct, cumulativeProduct[N_residual];
         cProduct = 1;
         for (i = 0; i < N_residual; i++)
         {
             double exp = 1.0 / (double)(N_residual - i);
             double value = pow(ranf(), exp);
-            cumulativeProduct[count - i - 1] = cProduct = cProduct * value;
+            cumulativeProduct[N_residual - i - 1] = cProduct = cProduct * value;
         }
         int j = 0;
         for (i = 0; i < N_residual ; i++)
@@ -158,9 +158,9 @@ void ParticleFilter::Resample()
         return;
     
 //    MultinomialResample();
-//    ResidualResample();
-    ImportanceResample();
-    cout << "sampled " << myParticles.size() << " new samples" << endl;
+    ResidualResample();
+//    ImportanceResample();
+//    cout << "sampled " << myParticles.size() << " new samples" << endl;
 }
 Particle* ParticleFilter::GetDominantParticle()
 {
