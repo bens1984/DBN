@@ -7,14 +7,26 @@
 //
 #pragma once
 
+// defines to adjust filter functionality
+// sampling - resample algorithm, either IMPORTANCE or RESIDUAL
+//#define sampling IMPORTANCE 
+#define sampling RESIDUAL
+//          derive observed V and V0 from Y and use in Kalman update?
+#define DERIVE_Y_V
+//           consider the probability of p(R | L) in the weighting?
+#define R_PROB
+//          amount of noise modeled in transition functions
+#define MODEL_NOISE 0.01
+#define OBSERVATION_NOISE 0.01
+// Gesture Frequency - how often M is reset to 1
+      // 1 over number of frames per typical gesture (1/30 = 0.03)
+#define GESTURE_FREQUENCY 0.1
+// how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
+#define V_V0_INFLUENCE 0.985          
+// ----------------
+
 #define ranf() \
 ((double)random()/(1.0+(double)RAND_MAX)) // Uniform from interval [0,1) */
-
-
-#define GESTURE_FREQUENCY 0.03      // 1 over number of frames per typical gesture (1/30 = 0.03)
-
-#define V_V0_INFLUENCE 0.95          // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
-
 
 #define twoPi 6.283185307179586476925286766559005768394 // 2 * pi
 #define e 2.718281828459045235360287471352662497757 // e
@@ -30,6 +42,8 @@ using namespace std;
 using namespace CwMtx;
 typedef CWTVector<double> CWVector;
 
+extern const float R_PROBABILITY[];
+
 enum ShapeQualities {
     rising, sinking, advancing, retreating, spreading, enclosing, neutral
 };
@@ -40,11 +54,13 @@ struct dbnState {
     int R[5];
     CWVector hiddenState[5], y[5];
     CWSquareMatrix hiddenStateVariance[5];
+    float* probabilityR;
     
     CWSquareMatrix updateFunction;
     
     dbnState()
     {
+        
         for (int i = 0; i < 5; i++)
         {
             hiddenState[i].dimension(3);
@@ -56,7 +72,7 @@ struct dbnState {
         updateFunction.dimension(3);
 //        updateFunction.makeUnity();
         updateFunction[0][0] = 1; updateFunction[0][1] = 1; updateFunction[0][2] = 0;   // to update x based on prev x and v
-        updateFunction[1][0] = 0; updateFunction[1][1] = 1.0 - V_V0_INFLUENCE; updateFunction[1][2] = V_V0_INFLUENCE;  // update v
+        updateFunction[1][0] = 0; updateFunction[1][1] = 1.0 - V_V0_INFLUENCE; updateFunction[1][2] = V_V0_INFLUENCE;  // update v  // 1; updateFunction[1][2] = 0; //
         updateFunction[2][0] = 0; updateFunction[2][1] = 0; updateFunction[2][2] = 1;     // retain v0
     }
 };
@@ -65,8 +81,9 @@ class Particle
 {
 private:
     dbnState state;
-    float weight;   // P(state | Y) or whatever
-    float weight_normalized;    // normalized weight
+    double weight;   // P(state | Y) or whatever
+    double weight_normalized;    // normalized weight
+    double baseProbability;
     
     double GetGaussianSample(double mean, double variance)
     {
@@ -104,17 +121,17 @@ public:
     ~Particle();
     
     void Initialize();  // randomly generate a new particle
-    void Resample(Particle* seed);   // resample this particle around the seed particle
+    void Resample();   // predict state values
     
     dbnState* GetState();
-    float GetWeight();
-    float GetNormalizedWeight();
+    double GetWeight();
+    double GetNormalizedWeight();
     void SetWeights(double newWeight);  // reset to 1/N
     
     Particle* Copy();
     
     void Predict();                         // predict next time step
-    float CalculateWeight(vector<float> *y);                    // calculate the importance of this particle
-    float NormalizeWeight(float sumWeight);     // normalize weight, set weight_normalized and return it
+    double CalculateWeight(vector<float> *y);                    // calculate the importance of this particle
+    double NormalizeWeight(double sumWeight);     // normalize weight, set weight_normalized and return it
     void KalmanForwardRecursion(bool print);      // exact step to update continuous state variables
 };

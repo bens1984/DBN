@@ -25,7 +25,16 @@
 #include "Particle.h"
 #include <math.h>
 
-Particle::Particle() : weight(0), weight_normalized(0)
+
+const float R_PROBABILITY[] = { 0.15, 0.1, 0.75, 0.15, 0.1, 0.75, 0.15, 0.1, 0.75, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1,    // probabilities of R = -1,0,1 given L = 0 for subindicators 0-4
+    0.75, 0.1, 0.15, 0.75, 0.1, 0.15, 0.75, 0.1, 0.15, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 
+    0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.01, 0.01, 0.98, 0.1, 0.8, 0.1, 
+    0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.98, 0.01, 0.01, 0.1, 0.8, 0.1, 
+    0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.01, 0.01, 0.98,  
+    0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.1, 0.8, 0.1, 0.98, 0.01, 0.01, 
+    0.01, 0.98, 0.01, 0.01, 0.98, 0.01, 0.01, 0.98, 0.01, 0.01, 0.98, 0.01, 0.01, 0.98, 0.01 };
+
+Particle::Particle() : weight(0), weight_normalized(0), baseProbability(0)
 {    
     Initialize();
 }
@@ -47,11 +56,11 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
     {
         state.hiddenState[i][0] = 0;  // X
         state.hiddenState[i][1] = 0;  // V
-        state.hiddenState[i][2] = 0;    // V0
+        state.hiddenState[i][2] = 1.0;    // V0
 //        state.hiddenState[i][3] = state.hiddenState[i][2];                // v0
         //        for (int j = 0; j < 3; j++)
         state.hiddenStateVariance[i].makeUnity();
-        state.hiddenStateVariance[i] *= 1.0;
+//        state.hiddenStateVariance[i] *= 1.0;
         state.y[i].fill(0); // initial observations
 
         //        if (state.R[i] != 0 && state.M == 0)   // v0
@@ -63,10 +72,8 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
     }
     weight = weight_normalized = 1;
 }
-void Particle::Resample(Particle* seed)   // creates a new particle that is distributed around this one.
-{                                       //TODO: replace with a proven algorithm
-    memcpy(&state, seed->GetState(), sizeof(state));    // load in seed state
-    
+void Particle::Resample()   // update state as a pre-prediction step
+{
     state.M = (ranf() < GESTURE_FREQUENCY);
     if (state.M == 0)
     {
@@ -81,21 +88,23 @@ void Particle::Resample(Particle* seed)   // creates a new particle that is dist
         for (int i = 0; i < 5; i++)
         {
             state.hiddenStateVariance[i].makeUnity();
-//            state.hiddenStateVariance[i] *= 1.0;
-        }
+        //            state.hiddenStateVariance[i] *= 1.0;
     }
-//    float alpha = 0.5;  // filtering constant for V update
-//    for (int i = 0; i < 5; i++)
-//    {
-//        if (state.R[i] != 0 && state.M == 0)   // v0
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2]));
-//        else
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
-//        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
-//        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, (1-alpha)/(1+alpha)); // V
-////        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
-//        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
-//    }
+        //    float alpha = 0.5;  // filtering constant for V update
+        for (int i = 0; i < 5; i++)
+        {
+            if (state.R[i] != 0 && state.M == 0)   // v0
+                state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2][2]));
+            else
+                state.hiddenState[i][2] = 1.0; //exp(GetGaussianSample(1.0, 10));   // uniform initialiazition
+//            double delta = (state.R[i] * state.hiddenState[i][2]);
+//            state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]); 
+                //GetGaussianSample((1.0 - V_V0_INFLUENCE) * state.hiddenState[i][1] + V_V0_INFLUENCE * delta, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)); // V
+            //        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
+            //        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
+        }
+        weight = weight_normalized = 1/(float)512;
+    }
 }
 void Particle::SampleR()
 {
@@ -161,11 +170,11 @@ dbnState* Particle::GetState()
 {
     return &state;
 }
-float Particle::GetWeight()
+double Particle::GetWeight()
 {
     return weight;
 }
-float Particle::GetNormalizedWeight()
+double Particle::GetNormalizedWeight()
 {
     return weight_normalized;
 }
@@ -197,22 +206,10 @@ void Particle::Predict()
 {
     CWSquareMatrix Q(state.hiddenState[0].getRows());
     Q.makeUnity(); 
-//    Q = Q * 0.01;
+    Q = Q * MODEL_NOISE;
     
     // transition for discrete states:
-    state.M = (ranf() < GESTURE_FREQUENCY);
-    if (state.M == 0)
-    {
-        state.M = 1;
-        //        state.L = state.L;    // L=L, R=R if M is 0
-        //        state.R = state.R;
-    }
-    else
-    {
-        state.L = (ShapeQualities)(rand() % 7);
-        SampleR();  // get R again!
-//        state.hiddenState[i][2] = 0;      // reset V0 when M=1 ?
-    }
+    Resample();
     
     for (int i = 0; i < 5; i++)
     {        
@@ -223,9 +220,9 @@ void Particle::Predict()
         state.hiddenState[i][2] = abs(state.hiddenState[i][2]);
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
+        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]); 
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
         
-
 //        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE/1+V_V0_INFLUENCE) * state.hiddenStateVariance[i][1][1]);
 
         //        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
@@ -252,7 +249,7 @@ void Particle::Predict()
 ////        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i];     // <- should this be done here or in Kalman step, below?
 //    }
 }
-float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weight  ---  NEED TO REDO THIS. VARIANCE gets smaller with better accuracy...
+double Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weight  ---  NEED TO REDO THIS. VARIANCE gets smaller with better accuracy...
 {
     double temp;
     
@@ -267,6 +264,7 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
     //   this is euclidean distance:
     //    float alpha = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
     weight = 0;
+//    cout << "L=" << state.L;
     for (int i = 0; i < 5; i++)
     {
 //        if (i == 0)
@@ -281,15 +279,20 @@ float Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weig
             squaredVariance = 0.000001;
         temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e, 
                 (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
+#ifdef R_PROB
+        temp *= R_PROBABILITY[state.L * 15 + i * 3 + (state.R[i]+1)];    // add probability that this R is part of this L
+//        cout << " R=" << state.R[i] << " prob=" << R_PROBABILITY[state.L * 15 + i * 3 + (state.R[i]+1)];
+#endif
         weight += temp; //*temp;
 //        }
     }
+//    cout << endl;
 
-    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
+//    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
 }
-float Particle::NormalizeWeight(float sumWeight)     // normalize weight, set weight_normalized and return it
+double Particle::NormalizeWeight(double sumWeight)     // normalize weight, set weight_normalized and return it
 {
     if (sumWeight > 0)
         weight_normalized = weight / sumWeight;
@@ -324,14 +327,16 @@ void Particle::KalmanForwardRecursion(bool print)
     
 //    control.fill(0);    // no control at the moment.
     R.makeUnity();
-//    R *= 0.01;
+    R *= OBSERVATION_NOISE;
 //    Q.makeUnity();
 //    Q *= 0.01;
 //    C.makeUnity();
     C.fill(0);
     C[0][0] = 1;            // transform from X to Y, only comparing diagonal values
+#ifdef DERIVE_Y_V
     C[1][1] = 1;
     C[2][2] = 1;
+#endif
     cTransp.storeTranspose(C);
     F.fill(0);
     G.fill(0);

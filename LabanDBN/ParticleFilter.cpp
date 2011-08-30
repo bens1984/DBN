@@ -158,8 +158,12 @@ void ParticleFilter::Resample()
         return;
     
 //    MultinomialResample();
+#if sampling == RESIDUAL
     ResidualResample();
-//    ImportanceResample();
+#endif
+#if sampling == IMPORTANCE
+    ImportanceResample();
+#endif
 //    cout << "sampled " << myParticles.size() << " new samples" << endl;
 }
 Particle* ParticleFilter::GetDominantParticle()
