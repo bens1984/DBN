@@ -8,21 +8,26 @@
 #pragma once
 
 // defines to adjust filter functionality
-// sampling - resample algorithm, either IMPORTANCE or RESIDUAL
+// sampling - resample algorithm, either IMPORTANCE, RESIDUAL, SCATTER
 //#define sampling IMPORTANCE 
-#define sampling RESIDUAL
+//#define sampling RESIDUAL
+#define sampling SCATTER
+// Nthresh for resampling. Percentage of filter size:
+#define N_thresh 0.75
 //          derive observed V and V0 from Y and use in Kalman update?
-#define DERIVE_Y_V
+//#define DERIVE_Y_V
 //           consider the probability of p(R | L) in the weighting?
-#define R_PROB
+//#define R_PROB
 //          amount of noise modeled in transition functions
-#define MODEL_NOISE 0.01
-#define OBSERVATION_NOISE 0.01
+#define MODEL_NOISE 0.05
+#define OBSERVATION_NOISE 0.05
 // Gesture Frequency - how often M is reset to 1
       // 1 over number of frames per typical gesture (1/30 = 0.03)
-#define GESTURE_FREQUENCY 0.1
+#define GESTURE_FREQUENCY 0
 // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
-#define V_V0_INFLUENCE 0.985          
+#define V_V0_INFLUENCE 0.985  
+// initial value for V0
+#define V00 0.1
 // ----------------
 
 #define ranf() \

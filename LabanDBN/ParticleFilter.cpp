@@ -152,6 +152,37 @@ void ParticleFilter::ImportanceResample()
     myParticles.erase(myParticles.begin(), myParticles.end());
     myParticles.insert(myParticles.begin(), newParticles.begin(), newParticles.end());
 }
+void ParticleFilter::ScatterResample()
+{
+    std::vector<Particle*> newParticles;
+    int count = myParticles.size();
+    double q_residual[count]; 
+    int N_babies[count];
+    double babySum = 0;
+    int i = 0;
+    for (i = 0; i < count; i++)
+    {
+        q_residual[i] = count * myParticles.at(i)->GetNormalizedWeight();       // this still has the danger of 1 particle taking over the whole set. We need a way to scatter sample all around again
+        babySum += N_babies[i] = floor(q_residual[i]);
+    }
+    // Residual number of particles to sample:
+    int N_residual = count - babySum;
+    //    cout << "N_residual " << N_residual << " ";
+    if (N_residual != 0)
+    {
+        newParticles.push_back(new Particle());
+    }
+    
+    // now multiply/delete particles based on N_babies
+    for (i = 0; i < count; i++)
+    {
+        for (int j = 0; j < N_babies[i]; j++)
+            newParticles.push_back(myParticles.at(i)->Copy());
+    }
+    
+    myParticles.erase(myParticles.begin(), myParticles.end());
+    myParticles.insert(myParticles.begin(), newParticles.begin(), newParticles.end());
+}
 void ParticleFilter::Resample()
 {
     if (myParticles.size() == 0)
@@ -160,9 +191,10 @@ void ParticleFilter::Resample()
 //    MultinomialResample();
 #if sampling == RESIDUAL
     ResidualResample();
-#endif
-#if sampling == IMPORTANCE
+#elif sampling == IMPORTANCE
     ImportanceResample();
+#elif sampling == SCATTER
+    ScatterResample();
 #endif
 //    cout << "sampled " << myParticles.size() << " new samples" << endl;
 }
@@ -186,7 +218,7 @@ Particle* ParticleFilter::GetDominantParticle()
 void ParticleFilter::ExactUpdate(vector<float>* y)
 {
     for (int i = 0; i < myParticles.size(); i++)
-        myParticles.at(i)->KalmanForwardRecursion(i==0);
+        myParticles.at(i)->KalmanForwardRecursion(false); //i==0);
 }
 double ParticleFilter::GetEffectiveNumber()        // calculate the effective number of particles
 {

@@ -21,6 +21,7 @@ private:
     void SystematicResample();
     void ResidualResample();
     void ImportanceResample();
+    void ScatterResample(); // my own model, based on residual sampling. particles of sufficient weight are retained while empty slots are resampled from P0 randomly
     
 public:
     ParticleFilter(int size);

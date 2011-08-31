@@ -62,10 +62,10 @@ int main (int argc, const char * argv[])
                 for (int i = 0; i < 5; i++)
                     cout << dbn->R[i] << ",";
                 cout << "] hiddenState:[";
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 3; i++)
                 {
  //                   for (int j = 0; j < dbn->hiddenState[0].getRows(); j++)
-                        cout << dbn->hiddenState[i][0] << ",";
+                        cout << dbn->hiddenState[0][i] << ",";
                 }
                 cout << "] obs:[";
                 
@@ -80,11 +80,11 @@ int main (int argc, const char * argv[])
                 cout << "no maximal particle found.";
             cout << endl;
             makeGraph(myFilter.GetParticles());
-//            if (myFilter.GetEffectiveNumber() < FILTERSIZE * 0.75)
-//            {
-//                cout << "resampling" << endl;
+            if (myFilter.GetEffectiveNumber() < FILTERSIZE * N_thresh)
+            {
+                cout << "resampling" << endl;
                 myFilter.Resample();
-//            }
+            }
             myFilter.ExactUpdate(&(data.data));
         }
     }

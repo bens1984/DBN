@@ -48,27 +48,19 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
     // how is state defined? what is the initial distribution?
     state.M = 0; // M = 0
     state.L = (ShapeQualities)(rand() % 7);    // L = {0...6}
+    
     // sample R given L
     SampleR();
     
-//    float alpha = 0.5;
     for (int i = 0; i < 5; i++)         // set continuous variables to 0 for a uniform start.
     {
         state.hiddenState[i][0] = 0;  // X
         state.hiddenState[i][1] = 0;  // V
-        state.hiddenState[i][2] = 1.0;    // V0
-//        state.hiddenState[i][3] = state.hiddenState[i][2];                // v0
-        //        for (int j = 0; j < 3; j++)
+        state.hiddenState[i][2] = V00;    // V0
+        
         state.hiddenStateVariance[i].makeUnity();
-//        state.hiddenStateVariance[i] *= 1.0;
+        
         state.y[i].fill(0); // initial observations
-
-        //        if (state.R[i] != 0 && state.M == 0)   // v0
-//            state.v0[i] = exp(GetGaussianSample(log(state.v0[i]), v0Variance));
-//        else
-//            state.v0[i] = exp(GetGaussianSample(log(state.v0[i]), 1000));   // uniform initialiazition
-//        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.v0[i] : state.v0[i]));
-//        state.hiddenState[i][2] = GetGaussianSample(alpha * state.hiddenState[i][2] + (1.0 - alpha) * delta, (1-alpha)/(1+alpha)); // V
     }
     weight = weight_normalized = 1;
 }
@@ -77,9 +69,7 @@ void Particle::Resample()   // update state as a pre-prediction step
     state.M = (ranf() < GESTURE_FREQUENCY);
     if (state.M == 0)
     {
-//        state.L = state.L;
-//        for (int i = 0; i < 5; i++)
-//            state.R[i] = state.R[i];
+        // retain L and R
     }
     else
     {
@@ -89,21 +79,21 @@ void Particle::Resample()   // update state as a pre-prediction step
         {
             state.hiddenStateVariance[i].makeUnity();
         //            state.hiddenStateVariance[i] *= 1.0;
+        }
+        weight = weight_normalized = 1/(float)512;      // TODO: don't hardcode 1/N
     }
-        //    float alpha = 0.5;  // filtering constant for V update
-        for (int i = 0; i < 5; i++)
-        {
-            if (state.R[i] != 0 && state.M == 0)   // v0
-                state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2][2]));
-            else
-                state.hiddenState[i][2] = 1.0; //exp(GetGaussianSample(1.0, 10));   // uniform initialiazition
+    
+    for (int i = 0; i < 5; i++)
+    {
+        if (state.R[i] != 0 && state.M == 0)   // v0
+            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), state.hiddenStateVariance[i][2][2]));
+        else
+            state.hiddenState[i][2] = exp(GetGaussianSample(log(V00), 100));   // uniform initialiazition
 //            double delta = (state.R[i] * state.hiddenState[i][2]);
 //            state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]); 
-                //GetGaussianSample((1.0 - V_V0_INFLUENCE) * state.hiddenState[i][1] + V_V0_INFLUENCE * delta, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)); // V
-            //        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
-            //        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
-        }
-        weight = weight_normalized = 1/(float)512;
+            //GetGaussianSample((1.0 - V_V0_INFLUENCE) * state.hiddenState[i][1] + V_V0_INFLUENCE * delta, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)); // V
+        //        state.hiddenState[i][1] = state.hiddenState[i][0];  // previous X
+        //        state.hiddenState[i][0] += state.hiddenState[i][1];  // X
     }
 }
 void Particle::SampleR()
@@ -220,34 +210,9 @@ void Particle::Predict()
         state.hiddenState[i][2] = abs(state.hiddenState[i][2]);
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
-        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]); 
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
-        
-//        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE/1+V_V0_INFLUENCE) * state.hiddenStateVariance[i][1][1]);
-
-        //        state.hiddenState[i][2] += GetGaussianSample(0, pow(state.hiddenStateVariance[i][2][2],2));     // is variance already a pow^2 value at this point?
-//        state.hiddenState[i][2] = abs(state.hiddenState[i][0]);        // this is probably why they use the log stuff, because V0 can never become negative!
+        state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]);
     }
-    
-//    // predict new X, V, V0... all others are considered to remain constant at this point (no transition model)
-//    for (int i = 0; i < 5; i++)
-//    {
-//        state.updateFunction[1][2] = state.R[i] * 0.5;
-//        state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i];
-//        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q;
-//        
-//        if (state.R[i] != 0 && state.M == 0)   // v0
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1.0)); //state.hiddenStateVariance[i][2]));
-//        else
-//            state.hiddenState[i][2] = exp(GetGaussianSample(log(state.hiddenState[i][2]), 1000));   // uniform initialiazition
-////        double delta = (state.R[i] == 0 ? 0 : (state.R[i] == -1 ? -state.hiddenState[i][2] : state.hiddenState[i][2]));
-////        float alpha = 0.9;
-////        float s = (1-0.5)/(1+0.5);  // ß from Swaminathan (7) and (8)
-////        state.hiddenState[i][1] = GetGaussianSample(alpha * state.hiddenState[i][1] + (1.0 - alpha) * delta, s * 1.0); //state.hiddenStateVariance[i][1]);
-////        
-////        state.hiddenState[i][0] = state.hiddenState[i][0] + state.hiddenState[i][1]; // X_t-1 + V_t-1
-////        state.hiddenStateVariance[i] = state.updateFunction * (CWMatrix)state.hiddenStateVariance[i];     // <- should this be done here or in Kalman step, below?
-//    }
 }
 double Particle::CalculateWeight(vector<float> *y)   // observed = Y, return weight  ---  NEED TO REDO THIS. VARIANCE gets smaller with better accuracy...
 {
@@ -269,9 +234,11 @@ double Particle::CalculateWeight(vector<float> *y)   // observed = Y, return wei
     {
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << " === ";
+#ifdef DERIVE_Y_V
         state.y[i][1] = y->at(i) - state.y[i][0];  // calculate dif
-        state.y[i][0] = y->at(i);           // store current observation
         state.y[i][2] = abs(state.y[i][1]); 
+#endif
+        state.y[i][0] = y->at(i);           // store current observation
 //        if (i == 0)
 //            cout << state.y[i][0] << ":" << state.y[i][1] << ":" << state.y[i][2] << endl;
         double squaredVariance = state.hiddenStateVariance[i][0][0]; //pow(state.hiddenStateVariance[i][0][0], 2);
