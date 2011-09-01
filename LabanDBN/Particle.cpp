@@ -62,7 +62,7 @@ void Particle::Initialize()  // sample a new particle given no preexisting state
         
         state.y[i].fill(0); // initial observations
     }
-    weight = weight_normalized = 1;
+    weight = weight_normalized = 1/(float)512;
 }
 void Particle::Resample()   // update state as a pre-prediction step
 {
@@ -73,7 +73,7 @@ void Particle::Resample()   // update state as a pre-prediction step
     }
     else
     {
-        state.L = (ShapeQualities)(rand() % 5);
+        state.L = (ShapeQualities)(rand() % 7);
         SampleR();
         for (int i = 0; i < 5; i++)
         {
@@ -209,6 +209,7 @@ void Particle::Predict()
 //            state.hiddenState[i][2] = exp(GetGaussianSample(log(0.0), 1000.0));   // uniform initialiazition
         state.hiddenState[i][2] = abs(state.hiddenState[i][2]);
         state.updateFunction[1][2] = state.R[i] * V_V0_INFLUENCE;      // set influence of R on V
+        state.prevX[i] = state.hiddenState[i][0];   // store for comparison during weight calculation
         state.hiddenState[i] = state.updateFunction * (CWMatrix)state.hiddenState[i]; // + F * control;
         state.hiddenStateVariance[i] = state.updateFunction * state.hiddenStateVariance[i] * transpose(state.updateFunction) + Q; //*transpose(Q);
         state.hiddenState[i][1] += GetGaussianSample(0, (1-V_V0_INFLUENCE)/(1+V_V0_INFLUENCE)*state.hiddenStateVariance[i][1][1]);
@@ -244,8 +245,10 @@ double Particle::CalculateWeight(vector<float> *y)   // observed = Y, return wei
         double squaredVariance = state.hiddenStateVariance[i][0][0]; //pow(state.hiddenStateVariance[i][0][0], 2);
         if (squaredVariance == 0)
             squaredVariance = 0.000001;
-        temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e, 
-                (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
+        temp = (1 / sqrt(twoPi * squaredVariance)) * pow(e,         // p(Y | X)
+                                                         (-1 * pow(y->at(i) - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
+//        temp += (1 / sqrt(twoPi * squaredVariance)) * pow(e,        // p(X | X_t-1)
+//                                                         (-1 * pow(state.prevX[i] - state.hiddenState[i][0], 2)) / (2 * squaredVariance));
 #ifdef R_PROB
         temp *= R_PROBABILITY[state.L * 15 + i * 3 + (state.R[i]+1)];    // add probability that this R is part of this L
 //        cout << " R=" << state.R[i] << " prob=" << R_PROBABILITY[state.L * 15 + i * 3 + (state.R[i]+1)];
@@ -255,7 +258,7 @@ double Particle::CalculateWeight(vector<float> *y)   // observed = Y, return wei
     }
 //    cout << endl;
 
-//    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
+    weight *= weight_normalized;    // w = w_t-1 * p(y | z)
     
     return weight;
 }

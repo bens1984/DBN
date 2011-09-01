@@ -9,9 +9,9 @@
 
 // defines to adjust filter functionality
 // sampling - resample algorithm, either IMPORTANCE, RESIDUAL, SCATTER
-//#define sampling IMPORTANCE 
+#define sampling IMPORTANCE 
 //#define sampling RESIDUAL
-#define sampling SCATTER
+//#define sampling SCATTER
 // Nthresh for resampling. Percentage of filter size:
 #define N_thresh 0.75
 //          derive observed V and V0 from Y and use in Kalman update?
@@ -19,13 +19,13 @@
 //           consider the probability of p(R | L) in the weighting?
 //#define R_PROB
 //          amount of noise modeled in transition functions
-#define MODEL_NOISE 0.05
-#define OBSERVATION_NOISE 0.05
+#define MODEL_NOISE 0.01
+#define OBSERVATION_NOISE 0.01
 // Gesture Frequency - how often M is reset to 1
       // 1 over number of frames per typical gesture (1/30 = 0.03)
-#define GESTURE_FREQUENCY 0
+#define GESTURE_FREQUENCY 0.5
 // how strongly R (the shape quality) influences the Kalman prediction for V, and thus X
-#define V_V0_INFLUENCE 0.985  
+#define V_V0_INFLUENCE 0.5  
 // initial value for V0
 #define V00 0.1
 // ----------------
@@ -59,6 +59,7 @@ struct dbnState {
     int R[5];
     CWVector hiddenState[5], y[5];
     CWSquareMatrix hiddenStateVariance[5];
+    double prevX[5];
     float* probabilityR;
     
     CWSquareMatrix updateFunction;
@@ -73,6 +74,7 @@ struct dbnState {
             hiddenStateVariance[i].dimension(3);
             y[i].dimension(3);
             y[i].fill(0);
+            prevX[i] = 0;
         }
         updateFunction.dimension(3);
 //        updateFunction.makeUnity();
